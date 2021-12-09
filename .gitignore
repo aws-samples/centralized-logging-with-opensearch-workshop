@@ -6,6 +6,8 @@ package-lock.json
 node_modules
 !source/.typescript/lambda/**/*.js
 !source/lambda/**/*.js
+### test snapshot ###
+source/test/__snapshots__/
 
 # CDK asset staging directory
 .cdk.staging
