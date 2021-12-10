@@ -25,6 +25,9 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "@aws-cdk/aws-autoscaling": "^1.134.0",
+    "@aws-cdk/aws-ec2": "^1.134.0",
+    "@aws-cdk/aws-elasticloadbalancingv2": "^1.134.0",
     "@aws-cdk/core": "1.134.0",
     "source-map-support": "^0.5.16"
   }
