@@ -20,11 +20,15 @@ import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2' // import elb2 libr
 import * as rds from '@aws-cdk/aws-rds';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3d from '@aws-cdk/aws-s3-deployment';
+import * as opensearch from "@aws-cdk/aws-opensearchservice";
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 
 const workshopDB_user = 'logHubWorkshopUser';
 const workshopDB_secretName = 'logHubWorkshopSecret'
 const workshopDB_name = 'workshopDB';
+const workshopOpensearch_name = 'workshop-os';
+const workshopOpensearch_username = 'master';
+const workshopOpensearch_password = cdk.SecretValue.plainText('Loghub@@123');
 
 export class MainStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -140,6 +144,48 @@ export class MainStack extends cdk.Stack {
     // Connections
     dbSecurityGroup.connections.allowFrom(workshopASG, ec2.Port.tcp(3306));
     dbSecurityGroup.connections.allowFrom(workshopASG, ec2.Port.tcp(22));
+
+    // Open Search
+    const serviceLinkedRole = new cdk.CfnResource(this, "es-service-linked-role", {
+      type: "AWS::IAM::ServiceLinkedRole",
+      properties: {
+        AWSServiceName: "es.amazonaws.com",
+        Description: "Role for ES to access resources in my VPC"
+      }
+    });
+
+    const workshopOpensearch = new opensearch.Domain(this, 'workshopOpensearch', {
+      domainName: workshopOpensearch_name,
+      version: opensearch.EngineVersion.OPENSEARCH_1_0,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      vpc: workshopVpc,
+      vpcSubnets: [workshopVpc.selectSubnets({subnetType: ec2.SubnetType.PRIVATE_WITH_NAT, availabilityZones: [workshopVpc.availabilityZones[0]]})],
+      capacity: {
+        dataNodes: 2,
+        dataNodeInstanceType: 't3.small.search',
+      },
+      nodeToNodeEncryption: true,
+      encryptionAtRest: {
+        enabled: true
+      },
+      enforceHttps: true,
+      fineGrainedAccessControl: {
+        masterUserName: workshopOpensearch_username,
+        masterUserPassword: workshopOpensearch_password
+      },
+      accessPolicies: [new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['es:*'],
+        principals: [
+          new iam.AnyPrincipal
+        ],
+        resources: [
+          `arn:aws:es:${this.region}:${this.account}:domain/${workshopOpensearch_name}/*`
+        ]
+      })]
+    });
+    workshopOpensearch.node.addDependency(serviceLinkedRole);
+    workshopOpensearch.connections.allowFromAnyIpv4(ec2.Port.tcp(443));
     
     // Outputs
     new cdk.CfnOutput(this, 'Region', { value: this.region })
@@ -154,6 +200,9 @@ export class MainStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, 'cloudFrontLoggingBucket', {
       value: cloudFrontToS3.cloudFrontLoggingBucket?.bucketArn!,
+    });
+    new cdk.CfnOutput(this, 'opensearchDomain', {
+      value: workshopOpensearch.domainEndpoint
     });
   }
 }
