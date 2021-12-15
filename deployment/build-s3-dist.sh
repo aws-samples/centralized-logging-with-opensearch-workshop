@@ -33,7 +33,7 @@ normal=$(tput sgr0)
 # SETTINGS
 #------------------------------------------------------------------------------
 # Important: CDK global version number
-# cdk_version=1.129.0 # Note: should match package.json
+cdk_version=1.129.0 # Note: should match package.json
 template_format="json"
 run_helper="true"
 
@@ -93,7 +93,7 @@ do_replace()
 create_template_json() 
 {
     # Run 'cdk synth' to generate raw solution outputs
-    do_cmd npx cdk synth --output=$staging_dist_dir
+    do_cmd cdk synth --output=$staging_dist_dir
 
     # Remove unnecessary output files
     do_cmd cd $staging_dist_dir
@@ -119,7 +119,7 @@ create_template_yaml()
     maxrc=0
     for template in `cdk list`; do
         echo Create template $template
-        npx cdk synth $template > ${template_dist_dir}/${template}.template
+        cdk synth $template > ${template_dist_dir}/${template}.template
         if [[ $? > $maxrc ]]; then
             maxrc=$?
         fi
