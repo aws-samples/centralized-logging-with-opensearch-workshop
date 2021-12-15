@@ -187,9 +187,6 @@ else
     export SOLUTION_TRADEMARKEDNAME
 fi
 
-if [[ ! -z $SOLUTION_VERSION ]]; then
-    export SOLUTION_VERSION
-fi
 
 #------------------------------------------------------------------------------
 # Validate command line parameters
@@ -209,26 +206,11 @@ export DIST_OUTPUT_BUCKET=$SOLUTION_BUCKET
 #
 # If confused, use build-s3-dist.sh <bucket> <version>
 if [ ! -z $3 ]; then
-    version="$3"
-elif [ ! -z "$2" ]; then
-    version=$2
-elif [ ! -z $SOLUTION_VERSION ]; then
-    version=$SOLUTION_VERSION
-elif [ -e ../source/version.txt ]; then
-    version=`cat ../source/version.txt`
+    export VERSION="$3"
 else
-    echo "Version not found. Version must be passed as an argument or in version.txt in the format vn.n.n"
-    exit 1
-fi
-SOLUTION_VERSION=$version
-
-# SOLUTION_VERSION should be vn.n.n
-if [[ $SOLUTION_VERSION != v* ]]; then
-    echo prepend v to $SOLUTION_VERSION
-    SOLUTION_VERSION=v${SOLUTION_VERSION}
+    export VERSION=$(git describe --tags || echo v0.0.0)
 fi
 
-export SOLUTION_VERSION=$version
 
 #-----------------------------------------------------------------------------------
 # Get reference for all important folders
@@ -308,7 +290,7 @@ echo "Find and replace bucket_name, solution_name, and version"
 cd $template_dist_dir
 do_replace "*.template" %%BUCKET_NAME%% ${SOLUTION_BUCKET}
 do_replace "*.template" %%SOLUTION_NAME%% ${SOLUTION_TRADEMARKEDNAME}
-do_replace "*.template" %%VERSION%% ${SOLUTION_VERSION}
+do_replace "*.template" %%VERSION%% ${VERSION}
 
 echo "------------------------------------------------------------------------------"
 echo "${bold}[Packing] Source code artifacts${normal}"
