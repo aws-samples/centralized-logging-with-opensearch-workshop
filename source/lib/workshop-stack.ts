@@ -28,7 +28,6 @@ const workshopDB_secretName = 'logHubWorkshopSecret'
 const workshopDB_name = 'workshopDB';
 const workshopOpensearch_name = 'workshop-os';
 const workshopOpensearch_username = 'master';
-const workshopOpensearch_password = cdk.SecretValue.plainText('Loghub@@123');
 
 export class MainStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -95,10 +94,11 @@ export class MainStack extends cdk.Stack {
     })
 
     // 3. create DB using the secret
+    const dbEngine = rds.DatabaseInstanceEngine.mysql({
+      version: rds.MysqlEngineVersion.VER_8_0_25
+    });
     const workshopDB = new rds.DatabaseInstance(this, 'workshopDB', {
-      engine: rds.DatabaseInstanceEngine.mysql({
-        version: rds.MysqlEngineVersion.VER_8_0_25
-      }),
+      engine: dbEngine,
       vpc: workshopVpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_NAT
@@ -109,7 +109,22 @@ export class MainStack extends cdk.Stack {
       backupRetention: cdk.Duration.days(0),
       credentials: rds.Credentials.fromSecret(rdsSecret, workshopDB_user),
       publiclyAccessible: false,
-      securityGroups: [dbSecurityGroup]
+      securityGroups: [dbSecurityGroup],
+      parameterGroup: new rds.ParameterGroup(this, 'parameterGroup', {
+        engine: dbEngine,
+        parameters: {
+          slow_query_log: '1',
+          long_query_time: '2',
+          log_output: 'FILE'
+        }
+      }),
+      optionGroup: new rds.OptionGroup(this, 'optionGroup', {
+        engine: dbEngine,
+        configurations: [{
+          name: 'MARIADB_AUDIT_PLUGIN',
+        }]
+      }),
+      cloudwatchLogsExports: ['error', 'slowquery', 'audit']
     });
 
     // ASG
@@ -188,8 +203,7 @@ export class MainStack extends cdk.Stack {
       },
       enforceHttps: true,
       fineGrainedAccessControl: {
-        masterUserName: workshopOpensearch_username,
-        masterUserPassword: workshopOpensearch_password
+        masterUserName: workshopOpensearch_username
       },
       accessPolicies: [new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
