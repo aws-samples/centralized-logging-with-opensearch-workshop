@@ -145,7 +145,7 @@ coverage_reports_top_path=$source_dir/test/coverage-reports
 run_cdk_project_test $source_dir
 
 # Test the attached Lambda function
-run_javascript_test $source_dir/lambda/example-function-js example-function-js
+# run_javascript_test $source_dir/lambda/example-function-js example-function-js
 
 # Return to the source/ level
 cd $source_dir
