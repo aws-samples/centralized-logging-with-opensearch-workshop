@@ -35,7 +35,21 @@ export class MainStack extends cdk.Stack {
     super(scope, id, props);
 
     // S3 and cloudfront
-    const cloudFrontToS3 = new CloudFrontToS3(this, 'log-hub-workshop-cloudfront-s3', {});
+    const cloudFrontToS3 = new CloudFrontToS3(this, 'log-hub-workshop-cloudfront-s3', {
+      insertHttpSecurityHeaders: false,
+      bucketProps: {
+        autoDeleteObjects: true,
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      },
+      loggingBucketProps: {
+        autoDeleteObjects: true,
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      },
+      cloudFrontLoggingBucketProps: {
+        autoDeleteObjects: true,
+        removalPolicy: cdk.RemovalPolicy.DESTROY
+      }
+    });
     const s3Bucket = cloudFrontToS3.s3Bucket!;
     // upload simple web page and static file to s3
     new s3d.BucketDeployment(this, 'DeployWebAssets', {
@@ -117,6 +131,10 @@ export class MainStack extends cdk.Stack {
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'));
     workshopASG.addUserData(readFileSync('./lib/user-data.sh', 'utf8'));
+    workshopASG.userData.addCommands(
+      `myValue=$(aws secretsmanager get-secret-value --secret-id logHubWorkshopSecret --query SecretString --output text --region ${this.region})`,
+      'echo "$myValue" > /var/www/inc/dbinfo.txt'
+    );
     workshopASG.userData.addS3DownloadCommand({
       bucket: s3Bucket,
       bucketKey: "samplePage.php",
