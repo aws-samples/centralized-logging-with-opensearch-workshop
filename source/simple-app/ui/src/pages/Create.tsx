@@ -26,6 +26,7 @@ const FilmSelect = Select.ofType<ProductTypes>();
 
 const Create = () => {
   const [product, setProduct] = useState<Product>(RESET_PRODUCT);
+  const [loadingCreate, setLoadingCreate] = useState(false);
 
   const [productType, setProductType] = useState<ProductTypes>();
   const [productTypeList, setProductTypeList] = useState<ProductTypes[]>([]);
@@ -33,15 +34,22 @@ const Create = () => {
 
   const createProduct = () => {
     product.productTypeId = productType?.id?.toString() || "0";
-    Axios.post("/product", product).then((res) => {
-      console.info("res:", res);
-      setProduct(RESET_PRODUCT);
-      Swal.fire({
-        icon: "success",
-        text: "Add Successful.",
-        confirmButtonColor: "#3085d6",
+    setLoadingCreate(true);
+    Axios.post("/product", product)
+      .then((res) => {
+        console.info("res:", res);
+        setProduct(RESET_PRODUCT);
+        setLoadingCreate(false);
+        Swal.fire({
+          icon: "success",
+          text: "Add Successful.",
+          confirmButtonColor: "#3085d6",
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoadingCreate(false);
       });
-    });
   };
 
   const getProductType = () => {
@@ -133,6 +141,8 @@ const Create = () => {
 
             <div className="mt-20 text-center">
               <Button
+                loading={loadingCreate}
+                disabled={loadingCreate}
                 style={{ width: "100%" }}
                 type="button"
                 className="bp3-button bp3-intent-primary bp3-round modifier"

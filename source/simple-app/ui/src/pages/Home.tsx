@@ -9,11 +9,13 @@ const Home = () => {
   const navigate = useNavigate();
   const [loadingImport, setLoadingImport] = useState(false);
   const [productList, setProductList] = useState<Product[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   const getProductList = () => {
     Axios.get("/products").then((res) => {
       console.info("res:", res);
       setProductList(res.data);
+      setLoadingData(false);
     });
   };
 
@@ -39,64 +41,73 @@ const Home = () => {
     <div>
       <Navigation />
       <div className="content">
-        <div>
-          {productList.length > 0 ? (
-            <div className="flex no-flex-warp">
-              {productList.map((element: Product, index: number) => {
-                return (
-                  <div className="product-item" key={index}>
-                    <Card className="example-card product-card">
-                      <div>
-                        <Link to={`/detail/${element.id}`}>
-                          <img
-                            width="100%"
-                            src={`https://dummyimage.com/600x400/30404d/fff&text=${element.productName}`}
-                          />
-                        </Link>
-                      </div>
-                      <div className="name">{element.productName}</div>
-                      <div className="price">
-                        ${element.productPrice.toFixed(2)}
-                      </div>
-                      <div>
-                        <Button
-                          rightIcon="arrow-right"
-                          onClick={() => {
-                            navigate("/detail/" + element.id);
-                          }}
-                          style={{ width: "100%" }}
-                        >
-                          View Detail
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                alignContent: "center",
-                justifyContent: "center",
-                paddingTop: 50,
-              }}
-              className={Classes.DARK}
-            >
-              <Button
-                disabled={loadingImport}
-                onClick={() => {
-                  importDemoData();
+        {loadingData ? (
+          <div
+            style={{ color: "#eee" }}
+            className="mt-20 padding-10 text-center"
+          >
+            Loading Data...
+          </div>
+        ) : (
+          <div>
+            {productList.length > 0 ? (
+              <div className="flex no-flex-warp">
+                {productList.map((element: Product, index: number) => {
+                  return (
+                    <div className="product-item" key={index}>
+                      <Card className="example-card product-card">
+                        <div>
+                          <Link to={`/detail/${element.id}`}>
+                            <img
+                              width="100%"
+                              src={`https://dummyimage.com/600x400/30404d/fff&text=${element.productName}`}
+                            />
+                          </Link>
+                        </div>
+                        <div className="name">{element.productName}</div>
+                        <div className="price">
+                          ${element.productPrice.toFixed(2)}
+                        </div>
+                        <div>
+                          <Button
+                            rightIcon="arrow-right"
+                            onClick={() => {
+                              navigate("/detail/" + element.id);
+                            }}
+                            style={{ width: "100%" }}
+                          >
+                            View Detail
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignContent: "center",
+                  justifyContent: "center",
+                  paddingTop: 50,
                 }}
-                loading={loadingImport}
-                icon="import"
+                className={Classes.DARK}
               >
-                Import Demo Data
-              </Button>
-            </div>
-          )}
-        </div>
+                <Button
+                  disabled={loadingImport}
+                  onClick={() => {
+                    importDemoData();
+                  }}
+                  loading={loadingImport}
+                  icon="import"
+                >
+                  Import Demo Data
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

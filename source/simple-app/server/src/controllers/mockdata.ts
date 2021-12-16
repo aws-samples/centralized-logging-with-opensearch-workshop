@@ -19,6 +19,6 @@ export const MOCK_PRODUCTS: Product[] = [
 ]
 
 export const MOCK_PRODUCTS_TYPE: ProductType[] = [
-  { id: 1, productTypeName:"Book" }, 
-  { id: 2, productTypeName: "Toy" }, 
+  { id: 1, productTypeName:"Books" }, 
+  { id: 2, productTypeName: "Toys" }, 
 ]

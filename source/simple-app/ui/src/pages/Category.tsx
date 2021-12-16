@@ -7,13 +7,16 @@ import { Navigation } from "./common/Nav";
 
 const Catetory = () => {
   const [productList, setProductList] = useState<Product[]>([]);
+  const [loadingData, setLoadingData] = useState(false);
   const { typeId } = useParams();
   const navigate = useNavigate();
 
   const getProductListByType = () => {
+    setLoadingData(true);
     Axios.get(`/products/type/${typeId}`).then((res) => {
       console.info("res:", res);
       setProductList(res.data);
+      setLoadingData(false);
     });
   };
 
@@ -25,41 +28,50 @@ const Catetory = () => {
     <div>
       <Navigation />
       <div className="content">
-        <div>
-          <div className="flex no-flex-warp">
-            {productList.map((element: Product, index: number) => {
-              return (
-                <div className="product-item" key={index}>
-                  <Card className="example-card product-card">
-                    <div>
-                      <Link to={`/detail/${element.id}`}>
-                        <img
-                          width="100%"
-                          src={`https://dummyimage.com/600x400/30404d/fff&text=${element.productName}`}
-                        />
-                      </Link>
-                    </div>
-                    <div className="name">{element.productName}</div>
-                    <div className="price">
-                      ${element.productPrice.toFixed(2)}
-                    </div>
-                    <div>
-                      <Button
-                        rightIcon="arrow-right"
-                        onClick={() => {
-                          navigate("/detail/" + element.id);
-                        }}
-                        style={{ width: "100%" }}
-                      >
-                        View Detail
-                      </Button>
-                    </div>
-                  </Card>
-                </div>
-              );
-            })}
+        {loadingData ? (
+          <div
+            style={{ color: "#eee" }}
+            className="mt-20 padding-10 text-center"
+          >
+            Loading Data...
           </div>
-        </div>
+        ) : (
+          <div>
+            <div className="flex no-flex-warp">
+              {productList.map((element: Product, index: number) => {
+                return (
+                  <div className="product-item" key={index}>
+                    <Card className="example-card product-card">
+                      <div>
+                        <Link to={`/detail/${element.id}`}>
+                          <img
+                            width="100%"
+                            src={`https://dummyimage.com/600x400/30404d/fff&text=${element.productName}`}
+                          />
+                        </Link>
+                      </div>
+                      <div className="name">{element.productName}</div>
+                      <div className="price">
+                        ${element.productPrice.toFixed(2)}
+                      </div>
+                      <div>
+                        <Button
+                          rightIcon="arrow-right"
+                          onClick={() => {
+                            navigate("/detail/" + element.id);
+                          }}
+                          style={{ width: "100%" }}
+                        >
+                          View Detail
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
