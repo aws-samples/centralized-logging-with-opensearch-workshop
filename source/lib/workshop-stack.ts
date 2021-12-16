@@ -179,14 +179,6 @@ export class MainStack extends cdk.Stack {
     dbSecurityGroup.connections.allowFrom(workshopASG, ec2.Port.tcp(22));
 
     // Open Search
-    const serviceLinkedRole = new cdk.CfnResource(this, "es-service-linked-role", {
-      type: "AWS::IAM::ServiceLinkedRole",
-      properties: {
-        AWSServiceName: "es.amazonaws.com",
-        Description: "Role for ES to access resources in my VPC"
-      }
-    });
-
     const workshopOpensearch = new opensearch.Domain(this, 'workshopOpensearch', {
       domainName: workshopOpensearch_name,
       version: opensearch.EngineVersion.OPENSEARCH_1_0,
@@ -216,7 +208,6 @@ export class MainStack extends cdk.Stack {
         ]
       })]
     });
-    workshopOpensearch.node.addDependency(serviceLinkedRole);
     workshopOpensearch.connections.allowFromAnyIpv4(ec2.Port.tcp(443));
     
     // Outputs
