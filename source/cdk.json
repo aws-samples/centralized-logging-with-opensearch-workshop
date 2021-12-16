@@ -3,6 +3,7 @@
   "context": {
     "solution_id": "%%SOLUTION_ID%%",
     "solution_name": "%%SOLUTION_NAME%%",
-    "solution_version": "%%VERSION%%"
+    "solution_version": "%%VERSION%%",
+    "@aws-cdk/core:newStyleStackSynthesis": true
   }
 }

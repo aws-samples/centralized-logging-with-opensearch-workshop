@@ -34,18 +34,17 @@ fs.readdirSync(global_s3_assets).forEach(file => {
     const fn = template.Resources[f];
     if (fn.Properties.Code.hasOwnProperty('S3Bucket')) {
       // Set the S3 key reference
-      let artifactHash = Object.assign(fn.Properties.Code.S3Bucket.Ref);
-      artifactHash = artifactHash.replace(_regex, '');
-      artifactHash = artifactHash.substring(0, artifactHash.indexOf('S3Bucket'));
-      const assetPath = `asset${artifactHash}`;
-      fn.Properties.Code.S3Key = `%%SOLUTION_NAME%%/%%VERSION%%/${assetPath}.zip`;
+      let s3Key = Object.assign(fn.Properties.Code.S3Key);
+      // https://github.com/aws/aws-cdk/issues/10608
+      if (!s3Key.endsWith('.zip')) {
+        fn.Properties.Code.S3Key = `%%SOLUTION_NAME%%/%%VERSION%%/${s3Key}.zip`;
+      } else {
+        fn.Properties.Code.S3Key = `%%SOLUTION_NAME%%/%%VERSION%%/${s3Key}`;
+      }
       // Set the S3 bucket reference
       fn.Properties.Code.S3Bucket = {
         'Fn::Sub': '%%BUCKET_NAME%%-${AWS::Region}'
       };
-      // Set the handler
-      // const handler = fn.Properties.Handler;
-      // fn.Properties.Handler = `${assetPath}/${handler}`;
     }
   });
 
@@ -64,6 +63,41 @@ fs.readdirSync(global_s3_assets).forEach(file => {
     }
   })
 
+  // Clean-up Custom::CDKBucketDeployment
+  const bucketDeployments = Object.keys(resources).filter(function (key) {
+    return resources[key].Type === "Custom::CDKBucketDeployment"
+  })
+  bucketDeployments.forEach(function (d) {
+    const deployment = template.Resources[d];
+    if (deployment.Properties.hasOwnProperty('SourceBucketNames')) {
+      let s3Key = Object.assign(deployment.Properties.SourceObjectKeys[0]);
+      deployment.Properties.SourceObjectKeys = [
+        `%%SOLUTION_NAME%%/%%VERSION%%/${s3Key}`
+      ]
+      deployment.Properties.SourceBucketNames = [
+        {
+          'Fn::Sub': '%%BUCKET_NAME%%-${AWS::Region}'
+        }
+      ]
+    }
+  })
+
+  // Clean-up CustomCDKBucketDeployment Policy
+  const bucketDeploymentsPolicy = Object.keys(resources).filter(function (key) {
+    return key.startsWith("CustomCDKBucketDeployment") && resources[key].Type === "AWS::IAM::Policy"
+  })
+
+  bucketDeploymentsPolicy.forEach(function (d) {
+    const policy = template.Resources[d];
+    let resources = policy.Properties.PolicyDocument.Statement[0].Resource
+    resources.forEach((res) => {
+      res['Fn::Join'].forEach((key) => {
+        if (key[2] == ':s3:::') {
+          key[3]['Fn::Sub'] = '%%BUCKET_NAME%%-${AWS::Region}'
+        }
+      })
+    })
+  })
 
   // For the below code to work with nested templates, the nested template file has to
   // be added as metadata to the construct in the CDK code.
@@ -123,6 +157,18 @@ fs.readdirSync(global_s3_assets).forEach(file => {
   assetParameters.forEach(function (a) {
     template.Parameters[a] = undefined;
   });
+
+  // Clean-up BootstrapVersion parameter
+  if (parameters.hasOwnProperty('BootstrapVersion')) {
+    parameters.BootstrapVersion = undefined
+  }
+
+  // Clean-up CheckBootstrapVersion Rule
+  const rules = (template.Rules) ? template.Rules : {};
+  if (rules.hasOwnProperty('CheckBootstrapVersion')) {
+    rules.CheckBootstrapVersion = undefined
+  }
+
 
   // Output modified template file
   const output_template = JSON.stringify(template, null, 2);
