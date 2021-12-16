@@ -2,7 +2,7 @@ import axios from 'axios'
 import Swal from 'sweetalert2'
 
 const instance = axios.create({
-  baseURL: 'http://localhost:4000/',
+  baseURL: '/api/',
   headers: {
     'Content-Type': 'application/json',
   },

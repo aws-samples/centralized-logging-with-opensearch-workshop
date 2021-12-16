@@ -19,6 +19,7 @@ import * as ec2 from '@aws-cdk/aws-ec2' // import ec2 library
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2' // import elb2 library
 import * as rds from '@aws-cdk/aws-rds';
 import * as iam from '@aws-cdk/aws-iam';
+import * as s3 from '@aws-cdk/aws-s3';
 import * as s3d from '@aws-cdk/aws-s3-deployment';
 import * as opensearch from "@aws-cdk/aws-opensearchservice";
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
@@ -47,13 +48,30 @@ export class MainStack extends cdk.Stack {
       cloudFrontLoggingBucketProps: {
         autoDeleteObjects: true,
         removalPolicy: cdk.RemovalPolicy.DESTROY
+      },
+      cloudFrontDistributionProps: {
+        comment: 'LogHub-Workshop Assets'
       }
     });
     const s3Bucket = cloudFrontToS3.s3Bucket!;
-    // upload simple web page and static file to s3
+    // upload static images to s3, will be exposed through cdn.
     new s3d.BucketDeployment(this, 'DeployWebAssets', {
       sources: [s3d.Source.asset(path.join(__dirname, '../s3'))],
       destinationBucket: s3Bucket,
+      prune: false,
+    });
+
+    // upload workshop simple app to s3.
+    const webSiteS3 = new s3.Bucket(this, 'loghubWorkshopWebsite', {
+      autoDeleteObjects: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+    // upload simple web page to s3
+    const simpleAppUpload = new s3d.BucketDeployment(this, 'DeployWorkshopWebSite', {
+      sources: [
+        s3d.Source.asset(path.join(__dirname, '../simple-app'))
+      ],
+      destinationBucket: webSiteS3,
       prune: false,
     });
 
@@ -142,19 +160,40 @@ export class MainStack extends cdk.Stack {
       updatePolicy: au.UpdatePolicy.rollingUpdate()
     });
     workshopASG.node.addDependency(workshopDB);
+    workshopASG.node.addDependency(simpleAppUpload);
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'));
     workshopASG.addUserData(readFileSync('./lib/user-data.sh', 'utf8'));
     workshopASG.userData.addCommands(
-      `myValue=$(aws secretsmanager get-secret-value --secret-id logHubWorkshopSecret --query SecretString --output text --region ${this.region})`,
-      'echo "$myValue" > /var/www/inc/dbinfo.txt'
     );
     workshopASG.userData.addS3DownloadCommand({
-      bucket: s3Bucket,
-      bucketKey: "samplePage.php",
-      localFile: "/var/www/html/samplePage.php"
+      bucket: webSiteS3,
+      bucketKey: 'nginx.config',
+      localFile: '/etc/nginx/nginx.conf'
     });
+    const mergeScript = `var a  = JSON.parse(require("/var/www/inc/dbinfo.json"));\
+    var b = require("/var/www/server/ormconfig.json");\
+    var output = Object.assign({}, b, a);\
+    output.database = a.dbname;\
+    var fs = require("fs");\
+    fs.writeFile("/var/www/server/ormconfig.json", JSON.stringify(output), function(err){});`;
+    workshopASG.userData.addCommands(
+      `aws s3 cp '${webSiteS3.s3UrlForObject('ui')}' '/var/www/ui' --recursive`,
+      `aws s3 cp '${webSiteS3.s3UrlForObject('server')}' '/var/www/server' --recursive`,
+      `echo $(aws secretsmanager get-secret-value --secret-id logHubWorkshopSecret --query SecretString --output json --region ${this.region}) > /var/www/inc/dbinfo.json`,
+      `echo '${mergeScript}' > mergeDBInfo.js`,
+      'node mergeDBInfo.js',
+      'cd /var/www/ui',
+      'npm install && npm run build',
+      'yes | cp -r /var/www/ui/build/* /usr/share/nginx/html/',
+      'chkconfig nginx on',
+      'service nginx start',
+      'service nginx restart',
+      'cd /var/www/server',
+      'npm install && npm run start'
+    );
+    
 
     // ELB
     const workshopAlb = new elbv2.ApplicationLoadBalancer(this, 'workshopAlb', {
