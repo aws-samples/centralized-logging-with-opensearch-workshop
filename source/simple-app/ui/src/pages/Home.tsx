@@ -85,6 +85,7 @@ const Home = () => {
               className={Classes.DARK}
             >
               <Button
+                disabled={loadingImport}
                 onClick={() => {
                   importDemoData();
                 }}
