@@ -13,6 +13,9 @@ router.get('/users/:id', UserController.showUserDetail);
 router.put('/users/:id', UserController.updateUser);
 router.delete('/users/:id', UserController.deleteUser);
 
+// Mock Data相关路由
+router.post('/importdemodata', ProductController.importDemoData);
+
 // product 相关的路由
 router.get('/products', ProductController.listProduct);
 router.get('/products/type/:typeId', ProductController.getProductByType);

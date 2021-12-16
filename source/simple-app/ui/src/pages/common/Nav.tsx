@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Alignment,
   AnchorButton,
@@ -9,27 +9,27 @@ import {
   NavbarHeading,
   NavbarDivider,
   Button,
-} from '@blueprintjs/core'
-import Axios from '../../js/request'
-import { ProductTypes } from '../../js/types'
+} from "@blueprintjs/core";
+import Axios from "../../js/request";
+import { ProductTypes } from "../../js/types";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface NavigationProps {}
 
 export const Navigation: React.FC<NavigationProps> = () => {
-  const navigate = useNavigate()
-  const [productTypeList, setProductTypeList] = useState<ProductTypes[]>([])
+  const navigate = useNavigate();
+  const [productTypeList, setProductTypeList] = useState<ProductTypes[]>([]);
 
   const getProductType = () => {
-    Axios.get('/producttypes').then((res) => {
-      console.info('res:', res)
-      setProductTypeList(res.data)
-    })
-  }
+    Axios.get("/producttypes").then((res) => {
+      console.info("res:", res);
+      setProductTypeList(res.data);
+    });
+  };
 
   useEffect(() => {
-    getProductType()
-  }, [])
+    getProductType();
+  }, []);
 
   return (
     <Navbar className={Classes.DARK}>
@@ -40,7 +40,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
         <NavbarDivider />
         <Button
           onClick={() => {
-            navigate('/')
+            navigate("/");
           }}
           alignText={Alignment.RIGHT}
           text=""
@@ -53,7 +53,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
             <Button
               minimal
               onClick={() => {
-                window.location.href = "/type/"+element.id
+                window.location.href = "/type/" + element.id;
                 // navigate('/type/' + element.id)
               }}
               style={{ marginLeft: 10 }}
@@ -61,7 +61,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
             >
               {element.productTypeName}
             </Button>
-          )
+          );
         })}
       </NavbarGroup>
       <NavbarGroup align={Alignment.RIGHT}>
@@ -74,5 +74,5 @@ export const Navigation: React.FC<NavigationProps> = () => {
         />
       </NavbarGroup>
     </Navbar>
-  )
-}
+  );
+};

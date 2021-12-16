@@ -7,7 +7,7 @@ import { Navigation } from "./common/Nav";
 
 const Catetory = () => {
   const [productList, setProductList] = useState<Product[]>([]);
-  const {id} = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const getProductListByType = () => {
@@ -26,7 +26,7 @@ const Catetory = () => {
       <Navigation />
       <div className="content">
         <div>
-        <div className="flex">
+          <div className="flex">
             {productList.map((element: Product, index: number) => {
               return (
                 <div className="product-item" key={index}>
@@ -42,9 +42,14 @@ const Catetory = () => {
                     <div className="name">{element.productName}</div>
                     <div className="price">${element.productPrice}</div>
                     <div>
-                      <Button onClick={()=>{
-                        navigate('/detail/' + element.id)
-                      }} style={{ width: "100%" }}>View Detail</Button>
+                      <Button
+                        onClick={() => {
+                          navigate("/detail/" + element.id);
+                        }}
+                        style={{ width: "100%" }}
+                      >
+                        View Detail
+                      </Button>
                     </div>
                   </Card>
                 </div>
