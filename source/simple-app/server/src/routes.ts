@@ -18,6 +18,7 @@ router.post('/importdemodata', ProductController.importDemoData);
 
 // product 相关的路由
 router.get('/products', ProductController.listProduct);
+router.post('/product', ProductController.addProduct);
 router.get('/products/type/:typeId', ProductController.getProductByType);
 router.get('/products/detail/:id', ProductController.showProductDetail);
 

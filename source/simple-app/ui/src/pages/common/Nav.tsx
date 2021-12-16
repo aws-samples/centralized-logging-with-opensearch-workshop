@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Alignment,
   AnchorButton,
@@ -18,6 +18,8 @@ export interface NavigationProps {}
 
 export const Navigation: React.FC<NavigationProps> = () => {
   const navigate = useNavigate();
+  const { typeId } = useParams();
+  console.info("typeId", typeId);
   const [productTypeList, setProductTypeList] = useState<ProductTypes[]>([]);
 
   const getProductType = () => {
@@ -51,12 +53,13 @@ export const Navigation: React.FC<NavigationProps> = () => {
         {productTypeList.map((element: ProductTypes, index) => {
           return (
             <Button
+              active={element.id == (typeId || -1)}
               minimal
               onClick={() => {
                 window.location.href = "/type/" + element.id;
                 // navigate('/type/' + element.id)
               }}
-              style={{ marginLeft: 10 }}
+              style={{ marginLeft: 10, minWidth: 100 }}
               key={index}
             >
               {element.productTypeName}
@@ -65,6 +68,17 @@ export const Navigation: React.FC<NavigationProps> = () => {
         })}
       </NavbarGroup>
       <NavbarGroup align={Alignment.RIGHT}>
+        <Button
+          icon="plus"
+          className="mr-10"
+          onClick={() => {
+            navigate("/create");
+          }}
+          text=""
+        >
+          Add Product
+        </Button>
+
         <AnchorButton
           href="http://www.amazonaws.cn"
           text="Docs"

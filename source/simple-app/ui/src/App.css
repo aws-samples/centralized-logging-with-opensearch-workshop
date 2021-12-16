@@ -18,6 +18,10 @@ body {
   display: flex;
 }
 
+.no-flex-warp {
+  flex-wrap: wrap;
+}
+
 .text-left {
   text-align: left;
 }
@@ -89,4 +93,8 @@ body {
 
 .img-border {
   max-width: 300px;
+}
+
+.add-category .bp3-button {
+  width: 200px !important;
 }

@@ -2,8 +2,8 @@
   "type": "mysql",
   "host": "localhost",
   "port": 3306,
-  "username": "xxx",
-  "password": "xxx",
+  "username": "root",
+  "password": "amazon123",
   "database": "loghub_workshop",
   "synchronize": true,
   "entities": [

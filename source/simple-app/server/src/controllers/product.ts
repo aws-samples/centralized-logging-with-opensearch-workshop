@@ -36,6 +36,21 @@ export default class ProductController {
     ctx.body = products;
   }
 
+  public static async addProduct(ctx: Context) {
+    ctx.body = 'Add Product controller';
+    console.log(ctx.request.body);
+    const data: Product = ctx.request.body
+    const addRes = await getManager()
+    .createQueryBuilder()
+    .insert()
+    .into(Product)
+    .values([data])
+    .execute();
+  
+    ctx.status = 200;
+    ctx.body = addRes;
+  }
+
   public static async getProductByType(ctx: Context) {
     ctx.body = `getProductByType controller with typeId = ${ctx.params.typeId}`;
     // const productRepository = getManager().getRepository(Product);

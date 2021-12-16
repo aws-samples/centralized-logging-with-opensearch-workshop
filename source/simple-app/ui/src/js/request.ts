@@ -1,5 +1,4 @@
 import axios from 'axios'
-
 import Swal from 'sweetalert2'
 
 const instance = axios.create({

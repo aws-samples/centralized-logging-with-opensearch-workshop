@@ -41,7 +41,7 @@ const Home = () => {
       <div className="content">
         <div>
           {productList.length > 0 ? (
-            <div className="flex">
+            <div className="flex no-flex-warp">
               {productList.map((element: Product, index: number) => {
                 return (
                   <div className="product-item" key={index}>
@@ -58,6 +58,7 @@ const Home = () => {
                       <div className="price">${element.productPrice}</div>
                       <div>
                         <Button
+                          rightIcon="arrow-right"
                           onClick={() => {
                             navigate("/detail/" + element.id);
                           }}

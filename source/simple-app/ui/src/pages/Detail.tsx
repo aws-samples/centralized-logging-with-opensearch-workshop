@@ -36,7 +36,7 @@ const Detail = () => {
               <div className="name">{product?.productName}</div>
               <div className="price">{product?.productPrice}</div>
               <div className="">
-                <Button>Add To Cart</Button>
+                <Button icon="shopping-cart">Add To Cart</Button>
               </div>
             </div>
           </div>

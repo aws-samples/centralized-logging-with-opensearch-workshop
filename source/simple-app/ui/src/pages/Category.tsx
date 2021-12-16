@@ -7,11 +7,11 @@ import { Navigation } from "./common/Nav";
 
 const Catetory = () => {
   const [productList, setProductList] = useState<Product[]>([]);
-  const { id } = useParams();
+  const { typeId } = useParams();
   const navigate = useNavigate();
 
   const getProductListByType = () => {
-    Axios.get(`/products/type/${id}`).then((res) => {
+    Axios.get(`/products/type/${typeId}`).then((res) => {
       console.info("res:", res);
       setProductList(res.data);
     });
@@ -26,7 +26,7 @@ const Catetory = () => {
       <Navigation />
       <div className="content">
         <div>
-          <div className="flex">
+          <div className="flex no-flex-warp">
             {productList.map((element: Product, index: number) => {
               return (
                 <div className="product-item" key={index}>
@@ -43,6 +43,7 @@ const Catetory = () => {
                     <div className="price">${element.productPrice}</div>
                     <div>
                       <Button
+                        rightIcon="arrow-right"
                         onClick={() => {
                           navigate("/detail/" + element.id);
                         }}
