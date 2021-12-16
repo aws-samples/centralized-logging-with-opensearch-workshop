@@ -40,7 +40,9 @@ const Catetory = () => {
                       </Link>
                     </div>
                     <div className="name">{element.productName}</div>
-                    <div className="price">${element.productPrice}</div>
+                    <div className="price">
+                      ${element.productPrice.toFixed(2)}
+                    </div>
                     <div>
                       <Button
                         rightIcon="arrow-right"

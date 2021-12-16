@@ -34,7 +34,7 @@ const Detail = () => {
             </div>
             <div className="product-info padding-10">
               <div className="name">{product?.productName}</div>
-              <div className="price">{product?.productPrice}</div>
+              <div className="price">${product?.productPrice.toFixed(2)}</div>
               <div className="">
                 <Button icon="shopping-cart">Add To Cart</Button>
               </div>
