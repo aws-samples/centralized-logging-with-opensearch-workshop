@@ -16,3 +16,6 @@ RulesToSuppress:
 - id: W52
 - id: W33
 - id: F80
+- id: W35
+- id: W41
+- id: W28

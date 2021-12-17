@@ -7,7 +7,3 @@
 RulesToSuppress:
 - id: W89
   reason: Lambda functions in this solution do not need to be deployed in a VPC
-- id: W35
-  reason: workshop temp s3 doesn't need access logging configured.
-- id: W41
-  reason: workshop temp s3 use only.
