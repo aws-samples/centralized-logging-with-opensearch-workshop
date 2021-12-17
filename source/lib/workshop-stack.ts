@@ -24,8 +24,8 @@ import * as s3d from '@aws-cdk/aws-s3-deployment';
 import * as opensearch from "@aws-cdk/aws-opensearchservice";
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 
-const workshopDB_user = 'logHubWorkshopUser';
-const workshopDB_secretName = 'logHubWorkshopSecret'
+const workshopDB_user = 'master';
+const workshopDB_secretName = 'workshopDBSecret'
 const workshopDB_name = 'workshopDB';
 const workshopOpensearch_name = 'workshop-os';
 const workshopOpensearch_username = 'master';
@@ -83,12 +83,12 @@ export class MainStack extends cdk.Stack {
       subnetConfiguration: [
         {
           cidrMask: 24,
-          name: 'ingress',
+          name: 'public',
           subnetType: ec2.SubnetType.PUBLIC,
         },
         {
           cidrMask: 24,
-          name: 'application',
+          name: 'private',
           subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
         }
       ]
@@ -116,6 +116,7 @@ export class MainStack extends cdk.Stack {
       version: rds.MysqlEngineVersion.VER_8_0_25
     });
     const workshopDB = new rds.DatabaseInstance(this, 'workshopDB', {
+      instanceIdentifier: 'workshop-db',
       engine: dbEngine,
       vpc: workshopVpc,
       vpcSubnets: {
@@ -132,7 +133,7 @@ export class MainStack extends cdk.Stack {
         engine: dbEngine,
         parameters: {
           slow_query_log: '1',
-          long_query_time: '2',
+          long_query_time: '1',
           log_output: 'FILE'
         }
       }),
@@ -178,9 +179,10 @@ export class MainStack extends cdk.Stack {
     var fs = require("fs");\
     fs.writeFile("/var/www/server/ormconfig.json", JSON.stringify(output), function(err){});`;
     workshopASG.userData.addCommands(
+      `echo '${workshopDB.instanceIdentifier}'`,
       `aws s3 cp '${webSiteS3.s3UrlForObject('ui')}' '/var/www/ui' --recursive`,
       `aws s3 cp '${webSiteS3.s3UrlForObject('server')}' '/var/www/server' --recursive`,
-      `echo $(aws secretsmanager get-secret-value --secret-id logHubWorkshopSecret --query SecretString --output json --region ${this.region}) > /var/www/inc/dbinfo.json`,
+      `echo $(aws secretsmanager get-secret-value --secret-id ${workshopDB_secretName} --query SecretString --output json --region ${this.region}) > /var/www/inc/dbinfo.json`,
       `echo '${mergeScript}' > mergeDBInfo.js`,
       'node mergeDBInfo.js',
       'cd /var/www/ui',
