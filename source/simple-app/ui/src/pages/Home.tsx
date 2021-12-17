@@ -60,7 +60,7 @@ const Home = () => {
                           <Link to={`/detail/${element.id}`}>
                             <img
                               width="100%"
-                              src={`https://dummyimage.com/600x400/30404d/fff&text=${element.productName}`}
+                              src={element.productImage}
                             />
                           </Link>
                         </div>

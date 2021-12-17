@@ -160,13 +160,12 @@ export class MainStack extends cdk.Stack {
       updatePolicy: au.UpdatePolicy.rollingUpdate()
     });
     workshopASG.node.addDependency(workshopDB);
+    workshopASG.node.addDependency(cloudFrontToS3);
     workshopASG.node.addDependency(simpleAppUpload);
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'));
     workshopASG.addUserData(readFileSync('./lib/user-data.sh', 'utf8'));
-    workshopASG.userData.addCommands(
-    );
     workshopASG.userData.addS3DownloadCommand({
       bucket: webSiteS3,
       bucketKey: 'nginx.config',
@@ -190,10 +189,10 @@ export class MainStack extends cdk.Stack {
       'chkconfig nginx on',
       'service nginx start',
       'service nginx restart',
+      `sed -i 's/$WORKSHOP_CDN_DOMAIN/${cloudFrontToS3.cloudFrontWebDistribution.domainName}/' /var/www/server/src/controllers/mockdata.ts`,
       'cd /var/www/server',
       'npm install && npm run start'
     );
-    
 
     // ELB
     const workshopAlb = new elbv2.ApplicationLoadBalancer(this, 'workshopAlb', {
@@ -265,6 +264,9 @@ export class MainStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, 'opensearchDomain', {
       value: workshopOpensearch.domainEndpoint
+    });
+    new cdk.CfnOutput(this, 'cloudFront', {
+      value: cloudFrontToS3.cloudFrontWebDistribution.domainName
     });
   }
 }

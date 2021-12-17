@@ -40,7 +40,7 @@ const Detail = () => {
               <div className="img-border">
                 <img
                   width="100%"
-                  src={`https://dummyimage.com/600x400/30404d/fff&text=${product?.productName}`}
+                  src={product?.productImage}
                 />
               </div>
               <div className="product-info padding-10">
