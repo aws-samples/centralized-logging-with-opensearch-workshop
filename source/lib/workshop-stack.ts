@@ -227,7 +227,7 @@ export class MainStack extends cdk.Stack {
       vpcSubnets: [workshopVpc.selectSubnets({subnetType: ec2.SubnetType.PRIVATE_WITH_NAT, availabilityZones: [workshopVpc.availabilityZones[0]]})],
       capacity: {
         dataNodes: 2,
-        dataNodeInstanceType: 't3.small.search',
+        dataNodeInstanceType: 'r6g.xlarge.search',
       },
       nodeToNodeEncryption: true,
       encryptionAtRest: {
