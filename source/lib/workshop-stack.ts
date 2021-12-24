@@ -29,6 +29,7 @@ const workshopDB_secretName = 'workshopDBSecret'
 const workshopDB_name = 'workshopDB';
 const workshopOpensearch_name = 'workshop-os';
 const workshopOpensearch_username = 'master';
+const workshopOpensearch_password = cdk.SecretValue.plainText('Loghub@@123');
 
 export class MainStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -192,6 +193,7 @@ export class MainStack extends cdk.Stack {
       'service nginx start',
       'service nginx restart',
       `sed -i 's/$WORKSHOP_CDN_DOMAIN/${cloudFrontToS3.cloudFrontWebDistribution.domainName}/' /var/www/server/src/controllers/mockdata.ts`,
+      `sed -i 's/daily/monthly/' /etc/logrotate.d/nginx`,
       'cd /var/www/server',
       'npm install && npm run start'
     );
@@ -235,7 +237,8 @@ export class MainStack extends cdk.Stack {
       },
       enforceHttps: true,
       fineGrainedAccessControl: {
-        masterUserName: workshopOpensearch_username
+        masterUserName: workshopOpensearch_username,
+        masterUserPassword: workshopOpensearch_password
       },
       accessPolicies: [new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
