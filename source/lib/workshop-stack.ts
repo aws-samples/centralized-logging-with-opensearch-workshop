@@ -15,6 +15,8 @@ import * as path from 'path'
 
 import * as au from '@aws-cdk/aws-autoscaling';
 import * as cdk from '@aws-cdk/core';
+import * as cdn from '@aws-cdk/aws-cloudfront';
+import * as origins from '@aws-cdk/aws-cloudfront-origins';
 import * as ec2 from '@aws-cdk/aws-ec2' // import ec2 library 
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2' // import elb2 library
 import * as rds from '@aws-cdk/aws-rds';
@@ -22,7 +24,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3d from '@aws-cdk/aws-s3-deployment';
 import * as opensearch from "@aws-cdk/aws-opensearchservice";
-import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
+import { OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
 
 const workshopDB_user = 'master';
 const workshopDB_secretName = 'workshopDBSecret'
@@ -35,38 +37,34 @@ export class MainStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // S3 and cloudfront
-    const cloudFrontToS3 = new CloudFrontToS3(this, 'log-hub-workshop-cloudfront-s3', {
-      insertHttpSecurityHeaders: false,
-      bucketProps: {
-        autoDeleteObjects: true,
-        removalPolicy: cdk.RemovalPolicy.DESTROY
-      },
-      loggingBucketProps: {
-        autoDeleteObjects: true,
-        removalPolicy: cdk.RemovalPolicy.DESTROY
-      },
-      cloudFrontLoggingBucketProps: {
-        autoDeleteObjects: true,
-        removalPolicy: cdk.RemovalPolicy.DESTROY
-      },
-      cloudFrontDistributionProps: {
-        comment: 'LogHub-Workshop Assets'
-      }
-    });
-    const s3Bucket = cloudFrontToS3.s3Bucket!;
-    // upload static images to s3, will be exposed through cdn.
-    new s3d.BucketDeployment(this, 'DeployWebAssets', {
-      sources: [s3d.Source.asset(path.join(__dirname, '../s3'))],
-      destinationBucket: s3Bucket,
-      prune: false,
-    });
-
     // upload workshop simple app to s3.
     const webSiteS3 = new s3.Bucket(this, 'loghubWorkshopWebsite', {
       autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY
     });
+
+    // upload static images to s3, will be exposed through cdn.
+    new s3d.BucketDeployment(this, 'DeployWebAssets', {
+      sources: [s3d.Source.asset(path.join(__dirname, '../s3'))],
+      destinationBucket: webSiteS3,
+      destinationKeyPrefix: 'assets',
+      prune: false,
+    });
+    const oai = new OriginAccessIdentity(this, 'OAI');
+    const cloudFrontToS3 = new cdn.Distribution(this, 'CDNWorkshopAssets', {
+      defaultBehavior: {
+        origin: new origins.S3Origin(webSiteS3, {
+          originPath: 'assets',
+          originAccessIdentity: oai
+        }),
+      },
+      enableLogging: true,
+      logBucket: webSiteS3,
+      logFilePrefix: 'distribution-access-logs/',
+      comment: 'LogHub-Workshop Assets'
+    });
+    webSiteS3.grantRead(oai)
+
     // upload simple web page to s3
     const simpleAppUpload = new s3d.BucketDeployment(this, 'DeployWorkshopWebSite', {
       sources: [
@@ -192,7 +190,7 @@ export class MainStack extends cdk.Stack {
       'chkconfig nginx on',
       'service nginx start',
       'service nginx restart',
-      `sed -i 's/$WORKSHOP_CDN_DOMAIN/${cloudFrontToS3.cloudFrontWebDistribution.domainName}/' /var/www/server/src/controllers/mockdata.ts`,
+      `sed -i 's/$WORKSHOP_CDN_DOMAIN/${cloudFrontToS3.domainName}/' /var/www/server/src/controllers/mockdata.ts`,
       `sed -i 's/daily/monthly/' /etc/logrotate.d/nginx`,
       'cd /var/www/server',
       'npm install && npm run start'
@@ -259,19 +257,13 @@ export class MainStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'dbEndpoint', { value: workshopDB.instanceEndpoint.hostname });
 
     new cdk.CfnOutput(this, 's3Bucket', {
-      value: cloudFrontToS3.s3Bucket?.bucketArn!,
-    });
-    new cdk.CfnOutput(this, 's3LoggingBucket', {
-      value: cloudFrontToS3.s3LoggingBucket?.bucketArn!,
-    });
-    new cdk.CfnOutput(this, 'cloudFrontLoggingBucket', {
-      value: cloudFrontToS3.cloudFrontLoggingBucket?.bucketArn!,
+      value: webSiteS3.bucketArn,
     });
     new cdk.CfnOutput(this, 'opensearchDomain', {
       value: workshopOpensearch.domainEndpoint
     });
     new cdk.CfnOutput(this, 'cloudFront', {
-      value: cloudFrontToS3.cloudFrontWebDistribution.domainName
+      value: cloudFrontToS3.domainName
     });
   }
 }
