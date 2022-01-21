@@ -2,7 +2,7 @@
 
 sudo su
 yum update -y
-amazon-linux-extras install -y nginx1
+amazon-linux-extras install -y nginx1 java-openjdk11
 yum install -y mysql
 
 ## Install Node and npm
@@ -14,3 +14,7 @@ nvm install v17
 mkdir -p /var/www/inc
 mkdir -p /var/www/ui
 mkdir -p /var/www/server
+
+## Run Java app
+wget https://d1ghg1dwyjumec.cloudfront.net/petstore-0.0.1-SNAPSHOT.jar
+nohup java -jar petstore-0.0.1-SNAPSHOT.jar &
