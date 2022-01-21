@@ -58,6 +58,7 @@ export class MainStack extends cdk.Stack {
           originAccessIdentity: oai
         }),
       },
+      minimumProtocolVersion: cdn.SecurityPolicyProtocol.TLS_V1_2_2021,
       enableLogging: true,
       logBucket: webSiteS3,
       logFilePrefix: 'distribution-access-logs/',
