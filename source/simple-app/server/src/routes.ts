@@ -3,7 +3,7 @@ import Router from '@koa/router';
 import UserController from './controllers/user';
 import ProductController from './controllers/product';
 import ProductTypeController from './controllers/productType';
-
+import WorkshopController from './controllers/workshop';
 
 const router = new Router();
 
@@ -25,4 +25,6 @@ router.get('/products/detail/:id', ProductController.showProductDetail);
 // productType 相关的路由
 router.get('/producttypes', ProductTypeController.listProductType);
 
+// workshop senario
+router.get('/slow/products/detail/:id', WorkshopController.slowQueryProductDetail)
 export default router;

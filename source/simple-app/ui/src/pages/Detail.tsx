@@ -9,14 +9,21 @@ const Detail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product>();
   const [loadingData, setLoadingData] = useState(false);
-
-  const getProductById = () => {
+  const nonMemberProducts = ['3'];
+  const getProductById = async () => {
     setLoadingData(true);
-    Axios.get(`/products/detail/${id}`).then((res) => {
-      console.info("res:", res);
-      setProduct(res.data);
-      setLoadingData(false);
-    });
+    let res;
+    if (id && nonMemberProducts.includes(id)) {
+      console.info('using slowquery to delay page load. Merchant needs to pay membership fee.');
+      res = await Axios.get(`api/slow/products/detail/${id}`);
+      // calling an error API to generate some error log.
+      Axios.get('java/hello');
+    } else {
+      res = await Axios.get(`api/products/detail/${id}`);
+    }
+    console.info("res:", res);
+    setProduct(res.data);
+    setLoadingData(false);
   };
 
   useEffect(() => {

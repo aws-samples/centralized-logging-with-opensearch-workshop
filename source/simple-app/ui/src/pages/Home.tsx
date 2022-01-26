@@ -12,7 +12,7 @@ const Home = () => {
   const [loadingData, setLoadingData] = useState(true);
 
   const getProductList = () => {
-    Axios.get("/products").then((res) => {
+    Axios.get("api/products").then((res) => {
       console.info("res:", res);
       setProductList(res.data);
       setLoadingData(false);
@@ -21,7 +21,7 @@ const Home = () => {
 
   const importDemoData = () => {
     setLoadingImport(true);
-    Axios.post("/importdemodata")
+    Axios.post("api/importdemodata")
       .then((res) => {
         window.location.reload();
         setLoadingImport(false);

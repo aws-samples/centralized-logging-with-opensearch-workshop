@@ -23,7 +23,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
   const [productTypeList, setProductTypeList] = useState<ProductTypes[]>([]);
 
   const getProductType = () => {
-    Axios.get("/producttypes").then((res) => {
+    Axios.get("api/producttypes").then((res) => {
       console.info("res:", res);
       setProductTypeList(res.data);
     });

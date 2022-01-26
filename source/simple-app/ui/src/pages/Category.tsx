@@ -13,7 +13,7 @@ const Catetory = () => {
 
   const getProductListByType = () => {
     setLoadingData(true);
-    Axios.get(`/products/type/${typeId}`).then((res) => {
+    Axios.get(`api/products/type/${typeId}`).then((res) => {
       console.info("res:", res);
       setProductList(res.data);
       setLoadingData(false);

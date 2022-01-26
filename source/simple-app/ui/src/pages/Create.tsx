@@ -35,7 +35,7 @@ const Create = () => {
   const createProduct = () => {
     product.productTypeId = productType?.id?.toString() || "0";
     setLoadingCreate(true);
-    Axios.post("/product", product)
+    Axios.post("api/product", product)
       .then((res) => {
         console.info("res:", res);
         setProduct(RESET_PRODUCT);
@@ -53,7 +53,7 @@ const Create = () => {
   };
 
   const getProductType = () => {
-    Axios.get("/producttypes").then((res) => {
+    Axios.get("api/producttypes").then((res) => {
       console.info("res:", res);
       setProductTypeList(res.data);
       if (res.data && res.data.length > 0) {
