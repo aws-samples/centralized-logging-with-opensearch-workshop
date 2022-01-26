@@ -16,8 +16,6 @@ const Detail = () => {
     if (id && nonMemberProducts.includes(id)) {
       console.info('using slowquery to delay page load. Merchant needs to pay membership fee.');
       res = await Axios.get(`api/slow/products/detail/${id}`);
-      // calling an error API to generate some error log.
-      Axios.get('java/hello');
     } else {
       res = await Axios.get(`api/products/detail/${id}`);
     }
@@ -54,7 +52,15 @@ const Detail = () => {
                 <div className="name">{product?.productName}</div>
                 <div className="price">${product?.productPrice.toFixed(2)}</div>
                 <div className="">
-                  <Button icon="shopping-cart">Add To Cart</Button>
+                  <Button 
+                    icon="shopping-cart" 
+                    onClick={() => {
+                      // calling an error API to generate some error log.
+                      Axios.get('java/hello');
+                    }}
+                  >
+                    Add To Cart
+                  </Button>
                 </div>
               </div>
             </div>
