@@ -26,6 +26,8 @@ import * as s3d from '@aws-cdk/aws-s3-deployment';
 import * as opensearch from "@aws-cdk/aws-opensearchservice";
 import { OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
 
+import { LogFakerStack, LogFakerProps } from './log-faker';
+
 const workshopDB_user = 'master';
 const workshopDB_secretName = 'workshopDBSecret'
 const workshopDB_name = 'workshopDB';
@@ -93,6 +95,13 @@ export class MainStack extends cdk.Stack {
         }
       ]
     });
+
+    // Log Faker
+    const logFakerProps: LogFakerProps = {
+        logBucketName: webSiteS3.bucketName,
+        logBucketPrefix: 'distribution-access-logs/',
+    }
+    const logFaker = new LogFakerStack(this, 'logFakerStack', logFakerProps)
 
     // RDS
     // 1. create a secret manager first.
@@ -163,6 +172,7 @@ export class MainStack extends cdk.Stack {
     workshopASG.node.addDependency(workshopDB);
     workshopASG.node.addDependency(cloudFrontToS3);
     workshopASG.node.addDependency(simpleAppUpload);
+    workshopASG.node.addDependency(logFaker);
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'));
@@ -193,6 +203,7 @@ export class MainStack extends cdk.Stack {
       'service nginx restart',
       `sed -i 's/$WORKSHOP_CDN_DOMAIN/${cloudFrontToS3.domainName}/' /var/www/server/src/controllers/mockdata.ts`,
       `sed -i 's/daily/monthly/' /etc/logrotate.d/nginx`,
+      `echo "{\"fakerAPIUrl\":\"${logFaker.fakerApiUrl}\"}" > /usr/share/nginx/html/config.json`,
       'cd /var/www/server',
       'npm install && npm run start'
     );
@@ -266,5 +277,8 @@ export class MainStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'cloudFront', {
       value: cloudFrontToS3.domainName
     });
+    new cdk.CfnOutput(this, 'fakerAPIURL', {
+      value: logFaker.fakerApiUrl
+    })
   }
 }
