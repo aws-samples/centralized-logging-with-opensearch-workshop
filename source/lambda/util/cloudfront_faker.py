@@ -23,25 +23,14 @@ def init_sc_bytes():
     return lambda: int(random.gauss(55000, 8000))
 
 
-def init_c_ip():
-    rng = WeightedChoice([
-        random_ipv4_from_region('us-east-1'),
-        random_ipv4_from_region('eu-west-1'),
-        random_ipv4_from_region('eu-west-2'),
-        random_ipv4_from_region('us-east-2'),
-        random_ipv4_from_region('eu-central-1'),
-        random_ipv4_from_region('eu-north-1'),
-        random_ipv4_from_region('ap-southeast-2'),
-        random_ipv4_from_region('sa-east-1'),
-        random_ipv4_from_region('me-south-1'),
-        random_ipv4_from_region('cn-north-1'),
-    ], [0.3, 0.15, 0.12, 0.2, 0.1, 0.1, 0.1, 0.05, 0.05, 0.03])
+def init_c_ip(ip_list):
+    rng = WeightedChoice(ip_list)
     return rng.run
 
 
 def init_cs_method():
     """Return the request method (%m)."""
-    rng = WeightedChoice(["GET", "POST", "DELETE", "PUT"], [0.8, 0, 0, 0])
+    rng = WeightedChoice(["GET", "POST", "DELETE", "PUT"], [0.8, 0.1, 0.03, 0.07])
     return rng.run
 
 

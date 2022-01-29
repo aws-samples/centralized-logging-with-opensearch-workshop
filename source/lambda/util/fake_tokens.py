@@ -1,9 +1,11 @@
 import datetime
+import ipaddress
 import random
 from faker import Faker
 from tzlocal import get_localzone
 from util.tools import WeightedChoice
 import util.cloudfront_faker as cloudfront_faker
+import util.faker_config as config
 
 
 class FakeTokens:
@@ -15,6 +17,7 @@ class FakeTokens:
         self.dispatcher = {}
         self.date_pattern = date_pattern
         self.sleep = sleep
+        self.ip_lists = self.generate_global_ip_list()
 
         # Nginx & Apache Log
         self.register_token("b", self.init_size_object())
@@ -33,7 +36,7 @@ class FakeTokens:
         self.register_token("timestamp", self.init_date())
         self.register_token("x-edge-location", cloudfront_faker.init_x_edge_location())
         self.register_token("sc-bytes", cloudfront_faker.init_sc_bytes())
-        self.register_token("c-ip", cloudfront_faker.init_c_ip())
+        self.register_token("c-ip", cloudfront_faker.init_c_ip(self.ip_lists))
         self.register_token("cs-method", cloudfront_faker.init_cs_method())
         self.register_token("cs-host", cloudfront_faker.init_cs_host())
         self.register_token("cs-uri-stem", cloudfront_faker.init_cs_uri_stem())
@@ -79,6 +82,13 @@ class FakeTokens:
         increment = datetime.timedelta(seconds=sleep)
         self.otime += increment
         return self.otime
+
+    def generate_global_ip_list(self):
+        tmp_ip_list = []
+        global_ip_cidrs = config.global_ip_cidrs
+        for ip_cidr in global_ip_cidrs:
+            tmp_ip_list += [str(ip) for ip in ipaddress.IPv4Network(ip_cidr)]
+        return tmp_ip_list
 
     # ----------------------------------------------
     def init_location(self):
