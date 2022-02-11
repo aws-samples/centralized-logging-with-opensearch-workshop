@@ -86,7 +86,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
           alignText={Alignment.RIGHT}
           text=""
         >
-          Generate Log
+          Generate Logs
         </Button>
 
         <AnchorButton
