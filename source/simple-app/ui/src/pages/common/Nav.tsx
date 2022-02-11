@@ -79,6 +79,16 @@ export const Navigation: React.FC<NavigationProps> = () => {
           Add Product
         </Button>
 
+        <Button
+          onClick={() => {
+            navigate("/generate-log");
+          }}
+          alignText={Alignment.RIGHT}
+          text=""
+        >
+          Generate Log
+        </Button>
+
         <AnchorButton
           href="http://www.amazonaws.cn"
           text="Docs"

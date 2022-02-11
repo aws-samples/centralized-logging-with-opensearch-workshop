@@ -4,6 +4,8 @@ import Home from "./pages/Home";
 import Category from "./pages/Category";
 import Detail from "./pages/Detail";
 import Create from "./pages/Create";
+import GenerateLog from "./pages/GenerateLog";
+
 import "./App.css";
 // import { Navigation } from './pages/common/Nav';
 
@@ -16,6 +18,7 @@ function App() {
           <Route path="/type/:typeId" element={<Category />} />
           <Route path="/detail/:id" element={<Detail />} />
           <Route path="/create" element={<Create />} />
+          <Route path="/generate-log" element={<GenerateLog />} />
         </Routes>
       </BrowserRouter>
     </div>
