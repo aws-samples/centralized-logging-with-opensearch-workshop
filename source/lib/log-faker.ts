@@ -142,8 +142,8 @@ export class LogFakerStack extends Construct {
                     'Authorization',
                     'X-Api-Key',
                 ],
-                allowMethods: ['POST'],
-                allowCredentials: false,
+                allowMethods: apigateway.Cors.ALL_METHODS,
+                allowCredentials: true,
                 allowOrigins: apigateway.Cors.ALL_ORIGINS,
             },
         });

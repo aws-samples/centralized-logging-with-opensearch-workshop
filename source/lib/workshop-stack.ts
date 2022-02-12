@@ -71,7 +71,7 @@ export class MainStack extends cdk.Stack {
     // upload simple web page to s3
     const simpleAppUpload = new s3d.BucketDeployment(this, 'DeployWorkshopWebSite', {
       sources: [
-        s3d.Source.asset(path.join(__dirname, '../simple-app'))
+        s3d.Source.asset(path.join(__dirname, '../simple-app'), { exclude: ['node_modules']})
       ],
       destinationBucket: webSiteS3,
       prune: false,
@@ -203,7 +203,7 @@ export class MainStack extends cdk.Stack {
       'service nginx restart',
       `sed -i 's/$WORKSHOP_CDN_DOMAIN/${cloudFrontToS3.domainName}/' /var/www/server/src/controllers/mockdata.ts`,
       `sed -i 's/daily/monthly/' /etc/logrotate.d/nginx`,
-      `echo "{\"fakerAPIUrl\":\"${logFaker.fakerApiUrl}\"}" > /usr/share/nginx/html/config.json`,
+      `echo "{\\"fakerAPIUrl\\":\\"${logFaker.fakerApiUrl}\\"}" > /usr/share/nginx/html/config.json`,
       'cd /var/www/server',
       'npm install && npm run start'
     );
