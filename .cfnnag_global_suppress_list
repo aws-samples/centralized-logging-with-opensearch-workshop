@@ -20,3 +20,8 @@ RulesToSuppress:
 - id: W41
 - id: W28
 - id: W70
+- id: W68
+- id: W59
+- id: W69
+- id: W64
+- id: W12
