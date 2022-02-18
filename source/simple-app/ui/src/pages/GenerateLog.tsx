@@ -9,7 +9,7 @@ const GenerateLog = () => {
   const [loadingData, setLoadingData] = useState(false);
   const [loadingGen, setLoadingGen] = useState(false);
   const [fakerAPIUrl, setFakerAPIUrl] = useState("/");
-  const generateLog = (type: string) => {
+  const generateFakerLog = (type: string, name: string) => {
     console.info("fakerAPIUrl:", fakerAPIUrl);
     setLoadingGen(true);
     axios
@@ -20,7 +20,7 @@ const GenerateLog = () => {
         if (res.data === "Success") {
           Swal.fire({
             icon: "success",
-            text: "Generate " + type + " Logs Successfully.",
+            text: "Generate " + name + " Logs Successfully.",
             confirmButtonColor: "#3085d6",
           });
         } else {
@@ -77,7 +77,7 @@ const GenerateLog = () => {
                   type="button"
                   className="bp3-button bp3-intent-primary bp3-round modifier"
                   onClick={() => {
-                    generateLog("cloudfront");
+                    generateFakerLog("cloudfront", "CloudFront");
                   }}
                 >
                   Generate CloudFront Logs
