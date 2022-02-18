@@ -14,7 +14,7 @@ export interface ProductType {
 
 export const MOCK_PRODUCTS: Product[] = [
   { productName: "Javascript Master", productPrice: 10.00, productImage: "https://$WORKSHOP_CDN_DOMAIN/Javascript-Master.png", productTypeId:"1" }, 
-  { productName: "Python Relase", productPrice: 20.00, productImage: "https://$WORKSHOP_CDN_DOMAIN/Python-Release.png", productTypeId:"1" }, 
+  { productName: "Python Release", productPrice: 20.00, productImage: "https://$WORKSHOP_CDN_DOMAIN/Python-Release.png", productTypeId:"1" }, 
   { productName: "Funny Moto", productPrice: 100.00, productImage: "https://$WORKSHOP_CDN_DOMAIN/Funny-Moto.png", productTypeId:"2" }, 
 ]
 
