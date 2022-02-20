@@ -28,11 +28,11 @@ import { OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
 
 import { LogFakerStack, LogFakerProps } from './log-faker';
 
-const workshopDB_user = 'master';
+const workshopDB_user = 'admin';
 const workshopDB_secretName = 'workshopDBSecret'
 const workshopDB_name = 'workshopDB';
 const workshopOpensearch_name = 'workshop-os';
-const workshopOpensearch_username = 'master';
+const workshopOpensearch_username = 'admin';
 const workshopOpensearch_password = cdk.SecretValue.plainText('Loghub@@123');
 
 export class MainStack extends cdk.Stack {
