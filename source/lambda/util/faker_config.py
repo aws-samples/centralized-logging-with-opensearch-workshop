@@ -1,3 +1,6 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 patterns = {
     "cloudfront": '%timestamp\t%x-edge-location\t%sc-bytes\t%c-ip\t%cs-method\t%cs-host\t%cs-uri-stem\t'
                   '%sc-status\t%cs-referer\t%cs-user-agent\t%cs-uri-query\t%cs-cookie\t%x-edge-result-type\t'

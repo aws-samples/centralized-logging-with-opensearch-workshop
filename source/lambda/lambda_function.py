@@ -1,3 +1,6 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 from util.log_generator import FakeLogs
 from util.line_pattern import LinePattern
 from util.tools import upload_folder_to_s3
