@@ -1,0 +1,44 @@
+{
+  "name": "log-hub-workshop",
+  "version": "0.1.0",
+  "bin": {
+    "cdk-workshop": "bin/workshop.js"
+  },
+  "scripts": {
+    "cleanup": "tsc --build ./ --clean && rm -rf node_modules && rm -f package-lock.json",
+    "cleanup:tsc": "tsc --build ./ --clean",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest --coverage",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "1.129.0",
+    "@types/aws-lambda": "^8.10.88",
+    "@types/jest": "^27.0.0",
+    "@types/node": "^16.4.0",
+    "@types/sinon": "^10.0.2",
+    "aws-cdk": "^1.129.0",
+    "jest": "^27.0.6",
+    "sinon": "^11.1.1",
+    "ts-jest": "^27.0.4",
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-autoscaling": "1.129.0",
+    "@aws-cdk/aws-certificatemanager": "1.129.0",
+    "@aws-cdk/aws-ec2": "1.129.0",
+    "@aws-cdk/aws-elasticloadbalancingv2": "1.129.0",
+    "@aws-cdk/aws-rds": "1.129.0",
+    "@aws-cdk/aws-cloudfront": "1.129.0",
+    "@aws-cdk/aws-cloudfront-origins": "1.129.0",
+    "@aws-cdk/aws-secretsmanager": "1.129.0",
+    "@aws-cdk/aws-opensearchservice": "1.129.0",
+    "@aws-cdk/core": "1.129.0",
+    "@aws-cdk/aws-lambda": "1.129.0",
+    "@aws-cdk/aws-s3-deployment": "1.129.0",
+    "@aws-cdk/aws-apigateway": "1.129.0",
+    "source-map-support": "^0.5.16"
+  }
+}

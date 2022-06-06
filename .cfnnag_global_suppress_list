@@ -1,0 +1,27 @@
+RulesToSuppress:
+- id: W89
+- id: W2
+- id: W60
+- id: W9
+- id: W5
+- id: W40
+- id: W77
+- id: W75
+- id: F27
+- id: F27
+- id: F24
+- id: W92
+- id: W58
+- id: W56
+- id: W52
+- id: W33
+- id: F80
+- id: W35
+- id: W41
+- id: W28
+- id: W70
+- id: W68
+- id: W59
+- id: W69
+- id: W64
+- id: W12
