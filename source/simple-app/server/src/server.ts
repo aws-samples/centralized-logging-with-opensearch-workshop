@@ -23,6 +23,8 @@ import { logger } from './logger';
 import router from './routes';
 import { createConnection } from 'typeorm';
 import 'reflect-metadata';
+import process from "node:process";
+import fs from "fs"
 
 
 createConnection().then(()=>{
@@ -41,6 +43,12 @@ createConnection().then(()=>{
   app.use(router.routes()).use(router.allowedMethods());
 
   // 运行服务器
+  fs.writeFile("/var/run/node.pid", process.pid.toString(), (err) => {
+    if (err) {
+      console.log(err);
+    }
+    console.log(process.pid);
+  });
   app.listen(4000);
 }).catch((err: string) => console.log('TypeORM connection error:', err));
 

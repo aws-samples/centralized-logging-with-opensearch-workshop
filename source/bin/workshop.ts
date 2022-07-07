@@ -16,7 +16,6 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#!/usr/bin/env node
 import * as cdk from '@aws-cdk/core';
 import 'source-map-support/register';
 import { MainStack } from '../lib/workshop-stack';

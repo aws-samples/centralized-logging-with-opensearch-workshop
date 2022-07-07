@@ -17,4 +17,3 @@ mkdir -p /var/www/server
 
 ## Run Java app
 wget https://aws-gcr-solutions.s3.amazonaws.com/log-hub-workshop/v1.0.0/petstore-0.0.1-SNAPSHOT.jar
-nohup java -jar petstore-0.0.1-SNAPSHOT.jar &

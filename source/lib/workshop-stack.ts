@@ -175,6 +175,7 @@ export class MainStack extends cdk.Stack {
       desiredCapacity: 2,
       minCapacity: 2,
       maxCapacity: 2,
+      signals: au.Signals.waitForMinCapacity(),
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
         onePerAz: true
@@ -188,12 +189,23 @@ export class MainStack extends cdk.Stack {
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'));
+    workshopASG.applyCloudFormationInit(
+        ec2.CloudFormationInit.fromElements(
+            ec2.InitFile.fromFileInline(
+                '/etc/nginx/nginx.conf',
+                path.join(__dirname, "./nginx.config")
+            ),
+            ec2.InitFile.fromFileInline(
+                '/etc/init.d/java.sh',
+                path.join(__dirname, "./java.sh")
+            ),
+            ec2.InitFile.fromFileInline(
+                '/etc/init.d/node.sh',
+                path.join(__dirname, "./node.sh")
+            )
+        )
+    );
     workshopASG.addUserData(readFileSync('./lib/user-data.sh', 'utf8'));
-    workshopASG.userData.addS3DownloadCommand({
-      bucket: webSiteS3,
-      bucketKey: 'nginx.config',
-      localFile: '/etc/nginx/nginx.conf'
-    });
     const mergeScript = `var a  = JSON.parse(require("/var/www/inc/dbinfo.json"));\
     var b = require("/var/www/server/ormconfig.json");\
     var output = Object.assign({}, b, a);\
@@ -216,8 +228,14 @@ export class MainStack extends cdk.Stack {
       `sed -i 's/$WORKSHOP_CDN_DOMAIN/${cloudFrontToS3.domainName}/' /var/www/server/src/controllers/mockdata.ts`,
       `sed -i 's/daily/monthly/' /etc/logrotate.d/nginx`,
       `echo "{\\"fakerAPIUrl\\":\\"${logFaker.fakerApiUrl}\\"}" > /usr/share/nginx/html/config.json`,
-      'cd /var/www/server',
-      'npm install && npm run start'
+      'chmod a+x /etc/init.d/java.sh',
+      'chkconfig --add /etc/init.d/java.sh',
+      'chkconfig on java.sh',
+      'service java.sh start',
+      'chmod a+x /etc/init.d/node.sh',
+      'chkconfig --add /etc/init.d/node.sh',
+      'chkconfig on node.sh',
+      'service node.sh start'
     );
 
     // ELB
