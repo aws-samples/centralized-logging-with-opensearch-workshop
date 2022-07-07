@@ -1,13 +1,22 @@
 # Log Hub Workshop
 
-To be updated.
+Getting started with [Log Hub workshop](https://awslabs.github.io/log-hub/en/workshop/introduction/). If you have any issues for this workshop, please submit issues to the [awslabs/log-hub](https://github.com/awslabs/log-hub/issues).
 
-***
+## Demo Site
+This repo contains the Log Hub workshop stack, which is a 3-tier e-commerce website with multiple AWS Services and self-built applications.
 
-Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+![](workshop-web.png)
 
-Licensed under the Apache License Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
+## Architecture
+The following is the architecture.
 
-    http://www.apache.org/licenses/
+![](workshop-demo.png)
 
-or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the LICENSE file.

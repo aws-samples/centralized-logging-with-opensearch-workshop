@@ -163,9 +163,15 @@ export class MainStack extends cdk.Stack {
 
     // ASG
     const workshopASG = new au.AutoScalingGroup(this, 'workshopASG', {
-      instanceType: new ec2.InstanceType("t2.small"),
+      instanceType: new ec2.InstanceType("t4g.medium"),
       vpc: workshopVpc,
-      machineImage: new ec2.AmazonLinuxImage({ generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2 }),
+      machineImage: ec2.MachineImage.latestAmazonLinux({
+        generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
+        edition: ec2.AmazonLinuxEdition.STANDARD,
+        virtualization: ec2.AmazonLinuxVirt.HVM,
+        storage: ec2.AmazonLinuxStorage.GENERAL_PURPOSE,
+        cpuType: ec2.AmazonLinuxCpuType.ARM_64,
+      }),
       desiredCapacity: 2,
       minCapacity: 2,
       maxCapacity: 2,

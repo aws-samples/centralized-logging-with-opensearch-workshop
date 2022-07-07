@@ -16,5 +16,5 @@ mkdir -p /var/www/ui
 mkdir -p /var/www/server
 
 ## Run Java app
-wget https://d1ghg1dwyjumec.cloudfront.net/petstore-0.0.1-SNAPSHOT.jar
+wget https://aws-gcr-solutions.s3.amazonaws.com/log-hub-workshop/v1.0.0/petstore-0.0.1-SNAPSHOT.jar
 nohup java -jar petstore-0.0.1-SNAPSHOT.jar &
