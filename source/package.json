@@ -1,6 +1,6 @@
 {
   "name": "log-hub-workshop",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "bin": {
     "cdk-workshop": "bin/workshop.js"
   },

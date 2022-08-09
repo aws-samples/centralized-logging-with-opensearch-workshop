@@ -34,6 +34,8 @@ import { OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
 
 import { LogFakerStack, LogFakerProps } from './log-faker';
 
+const { VERSION } = process.env;
+
 const workshopDB_user = 'admin';
 const workshopDB_secretName = 'workshopDBSecret'
 const workshopDB_name = 'workshopDB';
@@ -45,6 +47,8 @@ export class MainStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    this.templateOptions.description = `E-Commerce Demo Site for Log Hub workshop. Template version ${VERSION}`;
+    
     // upload workshop simple app to s3.
     const webSiteS3 = new s3.Bucket(this, 'loghubWorkshopWebsite', {
       autoDeleteObjects: true,
