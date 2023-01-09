@@ -1,0 +1,39 @@
+site_name: Log Hub Workshop
+site_url: https://aws-samples.github.io/log-hub-workshop/
+repo_url: https://github.com/aws-samples/log-hub-workshop/
+repo_name: aws-samples/log-hub-workshop
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+  favicon: images/aws-solutions.png
+  logo: images/aws-solutions.png
+  icon:
+      repo: fontawesome/brands/github
+  language: en
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  generator: false
+  copyright: Copyright &copy; 2020 - 2022 Amazon Web Services
+  bucket: aws-gcr-solutions
+  version: latest
+
+plugins:
+  - search
+  - include-markdown
+  - macros
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+
