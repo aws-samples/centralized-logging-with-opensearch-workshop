@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
+         <loc>https://aws-samples.github.io/log-hub-workshop/</loc>
+         <lastmod>2023-01-10</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/</loc>
          <lastmod>2023-01-10</lastmod>
          <changefreq>daily</changefreq>
@@ -132,11 +137,6 @@
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/clean-up/</loc>
-         <lastmod>2023-01-10</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://aws-samples.github.io/log-hub-workshop/workshop/introduction/</loc>
          <lastmod>2023-01-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
