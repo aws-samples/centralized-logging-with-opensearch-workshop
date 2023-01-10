@@ -22,4 +22,4 @@ For detailed architecture design of Log Hub, please refer to this diagram:
 
 [![arch]][arch]
 
-[arch]: ../images/architecture/arch.svg
+[arch]: /log-hub-workshop/workshop/images/arch.png

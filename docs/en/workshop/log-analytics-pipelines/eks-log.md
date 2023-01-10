@@ -38,7 +38,7 @@ We have successfully created a multi-line Spring Boot log config.
     - During the [pre-requisites](../deployment/create-eks.md), we have created the EKS in the same VPC of OpenSearch. So, we can skip the VPC peering in this workshop. But we still need to update the security group.
     - Go to [AWS Console > OpenSearch](https://us-east-1.console.aws.amazon.com/esv3/home?region=us-east-1#opensearch/domains/workshop-os){target="_blank"}
     - Copy the value of `Security group`. Then click the security group to view details
-          ![eks-network-sg](../../images/workshop/eks-network-sg.png)
+          ![eks-network-sg](../images/workshop/eks-network-sg.png)
     - Edit the inbound rule of the security group
           ![eks-network-sg2](../../images/workshop/eks-network-sg2.png)
     - Allow `All Traffic` from the `Security group` you copied above. Save the rules

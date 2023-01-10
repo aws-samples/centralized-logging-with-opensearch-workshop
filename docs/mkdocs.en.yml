@@ -6,7 +6,7 @@ theme:
 
 nav:
   - Workshop:
-      - 1. Introduction: workshop/introduction.md
+      - 1. Introduction: index.md
       - 2. Pre-requisites:
           - 2.0 Must Read: workshop/deployment/must-read.md
           - 2.1 EC2 Key Pair: workshop/deployment/key-pair.md
