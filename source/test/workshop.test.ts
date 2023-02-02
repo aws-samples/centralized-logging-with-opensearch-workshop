@@ -16,22 +16,36 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SynthUtils } from '@aws-cdk/assert';
-import '@aws-cdk/assert/jest';
-import * as cdk from '@aws-cdk/core';
+import {
+  App,
+} from "aws-cdk-lib";
+import { Match, Template } from "aws-cdk-lib/assertions";
 import workshop = require('../lib/workshop-stack');
 
-/*
- * Sample snapshot test
- */
-test('Sample snapshot test', () => {
-  const app = new cdk.App();
-  // WHEN
-  const stack = new workshop.MainStack(app, 'MyTestStack');
-  // THEN
-  expect(SynthUtils.toCloudFormation(stack)).toMatchSnapshot();
-});
+describe("MainStack", () => {
 
-/*
- * Sample unit test
- */
+
+  test("Test main stack with default setting", () => {
+    const app = new App();
+
+    // WHEN
+    const stack = new workshop.MainStack(app, 'MyTestStack');
+    const template = Template.fromStack(stack);
+
+    // Mocker data API
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      "Environment": {
+        "Variables": {
+          "DEFAULT_LOG_S3_BUCKET_NAME":  Match.anyValue(),
+          "DEFAULT_LOG_S3_BUCKET_PREFIX": "distribution-access-logs/"
+        }
+      },
+      MemorySize: 2048,
+      Runtime: "python3.9",
+      Timeout: 600
+
+    });
+  }
+  )
+}
+)

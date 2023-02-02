@@ -16,10 +16,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as cdk from '@aws-cdk/core';
+import { App } from "aws-cdk-lib";
 import 'source-map-support/register';
 import { MainStack } from '../lib/workshop-stack';
 
-const app = new cdk.App();
+const app = new App();
 
-new MainStack(app, 'LoghubWorkshop');
+new MainStack(app, 'CentralizedLoggingWorkshop');

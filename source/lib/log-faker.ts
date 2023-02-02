@@ -17,16 +17,20 @@
  */
 
 
-import { CfnResource, Construct, Aws, Duration } from '@aws-cdk/core';
 
-import * as iam from '@aws-cdk/aws-iam';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as lambda from '@aws-cdk/aws-lambda';
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as apigateway from '@aws-cdk/aws-apigateway';
 
-
+import { Construct } from "constructs";
+import {
+  Aws,
+  Duration,
+  CfnResource,
+  CfnOutput,
+  aws_s3 as s3,
+  aws_iam as iam,
+  aws_apigateway as apigateway,
+  aws_lambda as lambda,
+} from "aws-cdk-lib";
 
 /**
  * cfn-nag suppression rule interface
@@ -87,7 +91,7 @@ export class LogFakerStack extends Construct {
                         `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`,
                     ]
                 }),
-                // Set the resources to * for sending data to Log Hub Main Stack Default Logging Bucket.
+                // Set the resources to * for sending data to Centralized Logging Main Stack Default Logging Bucket.
                 new iam.PolicyStatement({
                     actions: [
                         "s3:PutObject",
@@ -156,7 +160,7 @@ export class LogFakerStack extends Construct {
         widget.addMethod("POST", postWidgetIntegration); // POST /{logType}
 
         this.fakerApiUrl = api.url;
-        new cdk.CfnOutput(this, 'apiUrl', { value: api.url });
+        new CfnOutput(this, 'apiUrl', { value: api.url });
 
     }
 }

@@ -19,18 +19,27 @@
 import {readFileSync} from 'fs';
 import * as path from 'path'
 
-import * as au from '@aws-cdk/aws-autoscaling';
-import * as cdk from '@aws-cdk/core';
-import * as cdn from '@aws-cdk/aws-cloudfront';
-import * as origins from '@aws-cdk/aws-cloudfront-origins';
-import * as ec2 from '@aws-cdk/aws-ec2' // import ec2 library 
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2' // import elb2 library
-import * as rds from '@aws-cdk/aws-rds';
-import * as iam from '@aws-cdk/aws-iam';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3d from '@aws-cdk/aws-s3-deployment';
-import * as opensearch from "@aws-cdk/aws-opensearchservice";
-import { OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
+import { Construct } from "constructs";
+import {
+  SecretValue,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+  Duration,
+  CfnOutput,
+  aws_s3 as s3,
+  aws_s3_deployment as s3d,
+  aws_iam as iam,
+  aws_autoscaling as au,
+  aws_cloudfront as cdn,
+  aws_cloudfront_origins as origins,
+  aws_ec2 as ec2, // import ec2 library
+  aws_elasticloadbalancingv2 as elbv2, // import elb2 library
+  aws_rds as rds,
+  aws_opensearchservice as opensearch,
+} from "aws-cdk-lib";
+
+import { OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
 
 import { LogFakerStack, LogFakerProps } from './log-faker';
 
@@ -41,18 +50,18 @@ const workshopDB_secretName = 'workshopDBSecret'
 const workshopDB_name = 'workshopDB';
 const workshopOpensearch_name = 'workshop-os';
 const workshopOpensearch_username = 'admin';
-const workshopOpensearch_password = cdk.SecretValue.plainText('Loghub@@123');
+const workshopOpensearch_password = SecretValue.unsafePlainText('CentralizedLogging@@123');
 
-export class MainStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class MainStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    this.templateOptions.description = `E-Commerce Demo Site for Log Hub workshop. Template version ${VERSION}`;
+    this.templateOptions.description = `E-Commerce Demo Site for Centralized Logging workshop. Template version ${VERSION}`;
     
     // upload workshop simple app to s3.
-    const webSiteS3 = new s3.Bucket(this, 'loghubWorkshopWebsite', {
+    const webSiteS3 = new s3.Bucket(this, 'clWorkshopWebsite', {
       autoDeleteObjects: true,
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      removalPolicy: RemovalPolicy.DESTROY
     });
 
     // upload static images to s3, will be exposed through cdn.
@@ -74,7 +83,7 @@ export class MainStack extends cdk.Stack {
       enableLogging: true,
       logBucket: webSiteS3,
       logFilePrefix: 'distribution-access-logs/',
-      comment: 'LogHub-Workshop Assets'
+      comment: 'CentralizedLogging-Workshop Assets'
     });
     webSiteS3.grantRead(oai)
 
@@ -101,7 +110,7 @@ export class MainStack extends cdk.Stack {
         {
           cidrMask: 24,
           name: 'private',
-          subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }
       ]
     });
@@ -139,12 +148,12 @@ export class MainStack extends cdk.Stack {
       engine: dbEngine,
       vpc: workshopVpc,
       vpcSubnets: {
-        subnetType: ec2.SubnetType.PRIVATE_WITH_NAT
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
       },
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
       databaseName: workshopDB_name,
-      backupRetention: cdk.Duration.days(0),
+      backupRetention: Duration.days(0),
       credentials: rds.Credentials.fromSecret(rdsSecret, workshopDB_user),
       publiclyAccessible: false,
       securityGroups: [dbSecurityGroup],
@@ -181,7 +190,7 @@ export class MainStack extends cdk.Stack {
       maxCapacity: 2,
       signals: au.Signals.waitForMinCapacity(),
       vpcSubnets: {
-        subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         onePerAz: true
       },
       updatePolicy: au.UpdatePolicy.rollingUpdate()
@@ -267,10 +276,10 @@ export class MainStack extends cdk.Stack {
     // Open Search
     const workshopOpensearch = new opensearch.Domain(this, 'workshopOpensearch', {
       domainName: workshopOpensearch_name,
-      version: opensearch.EngineVersion.OPENSEARCH_1_0,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      version: opensearch.EngineVersion.OPENSEARCH_2_3,
+      removalPolicy: RemovalPolicy.DESTROY,
       vpc: workshopVpc,
-      vpcSubnets: [workshopVpc.selectSubnets({subnetType: ec2.SubnetType.PRIVATE_WITH_NAT, availabilityZones: [workshopVpc.availabilityZones[0]]})],
+      vpcSubnets: [workshopVpc.selectSubnets({subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, availabilityZones: [workshopVpc.availabilityZones[0]]})],
       capacity: {
         dataNodes: 2,
         dataNodeInstanceType: 'r6g.xlarge.search',
@@ -298,20 +307,20 @@ export class MainStack extends cdk.Stack {
     workshopOpensearch.connections.allowFromAnyIpv4(ec2.Port.tcp(443));
     
     // Outputs
-    new cdk.CfnOutput(this, 'Region', { value: this.region })
-    new cdk.CfnOutput(this, 'ALB CNAME', { value: workshopAlb.loadBalancerDnsName })
-    new cdk.CfnOutput(this, 'dbEndpoint', { value: workshopDB.instanceEndpoint.hostname });
+    new CfnOutput(this, 'Region', { value: this.region })
+    new CfnOutput(this, 'ALB CNAME', { value: workshopAlb.loadBalancerDnsName })
+    new CfnOutput(this, 'dbEndpoint', { value: workshopDB.instanceEndpoint.hostname });
 
-    new cdk.CfnOutput(this, 's3Bucket', {
+    new CfnOutput(this, 's3Bucket', {
       value: webSiteS3.bucketArn,
     });
-    new cdk.CfnOutput(this, 'opensearchDomain', {
+    new CfnOutput(this, 'opensearchDomain', {
       value: workshopOpensearch.domainEndpoint
     });
-    new cdk.CfnOutput(this, 'cloudFront', {
+    new CfnOutput(this, 'cloudFront', {
       value: cloudFrontToS3.domainName
     });
-    new cdk.CfnOutput(this, 'fakerAPIURL', {
+    new CfnOutput(this, 'fakerAPIURL', {
       value: logFaker.fakerApiUrl
     })
   }
