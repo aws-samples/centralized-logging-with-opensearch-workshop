@@ -2,232 +2,232 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/FAQ/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/assets/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/concepts/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/log-analytics-pipeline-service/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/user-stories/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/UI/help-panel/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/app-log/api-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/app-log/architecture-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/app-log/data-model-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/app-log/log-analytics-pipeline-app/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/app-log/process-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/domain-management/api-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/domain-management/component-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/domain-management/data-model-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/domain-management/eks-auto-import/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/domain-management/process-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/eks-log/api-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/eks-log/architecture-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/eks-log/process-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/service-log/api-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/service-log/component-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/service-log/data-model-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/service-log/process-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/service-log/tutorial-extend-service-log/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/designs/solution/high-level-design/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/clean-up/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/dashboard-data/generate-logs/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/dashboard-data/view-dashboard/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/deployment/acm-certification/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/deployment/create-eks/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/deployment/deploy-demo-web-site/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/deployment/deploy-log-hub/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/deployment/key-pair/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/deployment/must-read/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/deployment/service-linked-role/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/domain-management/access-proxy/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/domain-management/create-proxy/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/domain-management/import-domain/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/log-analytics-pipelines/application-log/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/log-analytics-pipelines/cloudfront-log/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/log-analytics-pipelines/eks-log/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/log-analytics-pipelines/elb-log/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/log-analytics-pipelines/multi-line-dashboard/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://aws-samples.github.io/log-hub-workshop/workshop/log-analytics-pipelines/rds-log/</loc>
-         <lastmod>2023-01-10</lastmod>
+         <lastmod>2023-02-07</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
