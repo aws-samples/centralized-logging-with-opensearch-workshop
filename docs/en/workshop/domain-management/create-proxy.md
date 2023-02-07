@@ -9,7 +9,7 @@ By default, Amazon OpenSearch domain within VPC cannot be access from the Intern
 access the built-in dashboard of OpenSearch using VPC. In Log Hub solution, you can deploy a Nginx based proxy to allows
 public access to the OpenSearch domain. The following is the architecture diagram:
 
-![](../../images/architecture/proxy.svg)
+![](../../images/workshop/proxy-arch.svg)
 
 ## Create a proxy
 1. In the navigation pane, under **Clusters**, choose **OpenSearch domains**.
