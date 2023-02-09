@@ -25,8 +25,10 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "@aws-cdk/lambda-layer-kubectl-v24": "2.0.93",
     "aws-cdk": "2.61.0",
     "aws-cdk-lib": "2.61.0",
+    "js-yaml": "4.1.0",
     "aws-sdk": "2.814.0",
     "constructs": "10.1.85",
     "source-map-support": "^0.5.16"

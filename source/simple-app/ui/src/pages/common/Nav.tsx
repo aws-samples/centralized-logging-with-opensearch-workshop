@@ -55,7 +55,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
     <Navbar className={Classes.DARK}>
       <NavbarGroup align={Alignment.LEFT}>
         <NavbarHeading>
-          <b>LogHub Workshop</b>
+          <b>Centralized Logging Workshop</b>
         </NavbarHeading>
         <NavbarDivider />
         <Button

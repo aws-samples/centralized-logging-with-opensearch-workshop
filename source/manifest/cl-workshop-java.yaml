@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-svc
+spec:
+  type: NodePort
+  selector:
+    app: spring-boot
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+# spring-boot
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-boot
+  template:
+    metadata:
+      labels:
+        app: spring-boot
+    spec:
+      containers:
+        - name: spring-boot
+          image: openjdk:11-jre
+          resources:
+            limits:
+              cpu: 200m
+              memory: 512Mi
+          args:
+            - /bin/bash
+            - -xec
+            - |
+              cd /tmp
+              wget https://aws-gcr-solutions.s3.amazonaws.com/log-hub-workshop/v1.0.0/petstore-0.0.1-SNAPSHOT.jar
+              mkdir -p /var/log/spring-boot/
+              java -jar petstore-0.0.1-SNAPSHOT.jar --server.port=8080 | tee /var/log/spring-boot/access.log
+          ports:
+            - containerPort: 8080
+              protocol: TCP

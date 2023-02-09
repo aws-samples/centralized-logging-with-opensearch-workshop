@@ -1,0 +1,124 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  type: NodePort
+  selector:
+    app: nginx-svc
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# e-commerce svc
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-svc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-svc
+  template:
+    metadata:
+      labels:
+        app: nginx-svc
+    spec:
+      containers:
+        - name: nginx-svc
+          image: amazonlinux:latest
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2048Mi
+          args:
+            - /bin/bash
+            - -xec
+            - |
+              yum update -y
+              amazon-linux-extras install -y nginx1
+              yum install -y awscli
+              yum install -y mysql
+              curl -sL https://rpm.nodesource.com/setup_17.x | bash -
+              yum install -y nodejs
+              aws s3 cp '$CL_S3_UI_URL' '/var/www/ui' --recursive
+              aws s3 cp '$CL_S3_SERVER_URL' '/var/www/server' --recursive
+              mkdir /var/www/inc/
+              echo $(aws secretsmanager get-secret-value --secret-id $CL_WORKSHOP_DB_SECRET_NAME --query SecretString --output json --region $CL_REGION) > /var/www/inc/dbinfo.json
+              echo 'var a  = JSON.parse(require("/var/www/inc/dbinfo.json"));    var b = require("/var/www/server/ormconfig.json");    var output = Object.assign({}, b, a);    output.database = a.dbname;    var fs = require("fs");    fs.writeFile("/var/www/server/ormconfig.json", JSON.stringify(output), function(err){});' > mergeDBInfo.js
+              node mergeDBInfo.js
+              cd /var/www/ui
+              npm install && npm run build
+              yes | cp -r /var/www/ui/build/* /usr/share/nginx/html/
+              sed -i 's/$WORKSHOP_CDN_DOMAIN/$CL_CLOUDFRONT_DOMAIN_NAME/' /var/www/server/src/controllers/mockdata.ts
+              echo "{\"fakerAPIUrl\":\"$CL_LOG_GENERATOR_URL\"}" > /usr/share/nginx/html/config.json
+              cat > /etc/nginx/nginx.conf <<EOF
+              user nginx;
+              worker_processes auto;
+              error_log /dev/stdout;
+              pid /run/nginx.pid;
+
+              include /usr/share/nginx/modules/*.conf;
+
+              events {
+                  worker_connections 1024;
+              }
+
+              http {
+                  log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
+                                    '\$status \$body_bytes_sent "\$http_referer" '
+                                    '"\$http_user_agent" "\$http_x_forwarded_for"';
+
+                  access_log  /dev/stdout  main;
+
+                  sendfile            on;
+                  tcp_nopush          on;
+                  tcp_nodelay         on;
+                  keepalive_timeout   65;
+                  types_hash_max_size 4096;
+
+                  include             /etc/nginx/mime.types;
+                  default_type        application/octet-stream;
+
+                  include /etc/nginx/conf.d/*.conf;
+
+                  server {
+                      listen       80;
+                      listen       [::]:80;
+                      server_name  _;
+                      root         /usr/share/nginx/html;
+
+                      include /etc/nginx/default.d/*.conf;
+
+
+                      location = /404.html {
+                      }
+
+                      error_page 500 502 503 504 /50x.html;
+                      location = /50x.html {
+                      }
+
+                      location / {
+                              try_files \$uri /index.html;
+                      }
+
+                      location /api/ {
+                              rewrite ^/api/(.*)\$ /\$1 break;
+                              proxy_pass http://e-commerce.default.svc.cluster.local;
+                      }
+
+                      location /java/ {
+                              rewrite ^/java/(.*)\$ /\$1 break;
+                              proxy_pass http://java-svc.default.svc.cluster.local;
+                      }
+                      }
+              }
+              EOF
+              nginx -g "daemon off;"
+          ports:
+            - containerPort: 80
+              protocol: TCP

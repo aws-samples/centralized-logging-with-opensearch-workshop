@@ -16,7 +16,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import {readFileSync} from 'fs';
+import { readFileSync } from 'fs';
 import * as path from 'path'
 
 import { Construct } from "constructs";
@@ -42,6 +42,7 @@ import {
 import { OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
 
 import { LogFakerStack, LogFakerProps } from './log-faker';
+import { EksClusterStack, EksClusterProps } from './eks-cluster-stack'
 
 const { VERSION } = process.env;
 
@@ -57,7 +58,7 @@ export class MainStack extends Stack {
     super(scope, id, props);
 
     this.templateOptions.description = `E-Commerce Demo Site for Centralized Logging workshop. Template version ${VERSION}`;
-    
+
     // upload workshop simple app to s3.
     const webSiteS3 = new s3.Bucket(this, 'clWorkshopWebsite', {
       autoDeleteObjects: true,
@@ -90,7 +91,7 @@ export class MainStack extends Stack {
     // upload simple web page to s3
     const simpleAppUpload = new s3d.BucketDeployment(this, 'DeployWorkshopWebSite', {
       sources: [
-        s3d.Source.asset(path.join(__dirname, '../simple-app'), { exclude: ['node_modules']})
+        s3d.Source.asset(path.join(__dirname, '../simple-app'), { exclude: ['node_modules'] })
       ],
       destinationBucket: webSiteS3,
       prune: false,
@@ -117,8 +118,8 @@ export class MainStack extends Stack {
 
     // Log Faker
     const logFakerProps: LogFakerProps = {
-        logBucketName: webSiteS3.bucketName,
-        logBucketPrefix: 'distribution-access-logs/',
+      logBucketName: webSiteS3.bucketName,
+      logBucketPrefix: 'distribution-access-logs/',
     }
     const logFaker = new LogFakerStack(this, 'logFakerStack', logFakerProps)
 
@@ -128,15 +129,15 @@ export class MainStack extends Stack {
       this,
       'rdsSecret',
       {
-          username: workshopDB_user,
-          secretName: workshopDB_secretName
+        username: workshopDB_user,
+        secretName: workshopDB_secretName
       }
     );
 
     // 2. security group
     const dbSecurityGroup = new ec2.SecurityGroup(this, "workshopDBSecurityGroup", {
       vpc: workshopVpc,
-      
+
     })
 
     // 3. create DB using the secret
@@ -203,20 +204,20 @@ export class MainStack extends Stack {
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
     workshopASG.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'));
     workshopASG.applyCloudFormationInit(
-        ec2.CloudFormationInit.fromElements(
-            ec2.InitFile.fromFileInline(
-                '/etc/nginx/nginx.conf',
-                path.join(__dirname, "./nginx.config")
-            ),
-            ec2.InitFile.fromFileInline(
-                '/etc/init.d/java.sh',
-                path.join(__dirname, "./java.sh")
-            ),
-            ec2.InitFile.fromFileInline(
-                '/etc/init.d/node.sh',
-                path.join(__dirname, "./node.sh")
-            )
+      ec2.CloudFormationInit.fromElements(
+        ec2.InitFile.fromFileInline(
+          '/etc/nginx/nginx.conf',
+          path.join(__dirname, "./nginx.config")
+        ),
+        ec2.InitFile.fromFileInline(
+          '/etc/init.d/java.sh',
+          path.join(__dirname, "./java.sh")
+        ),
+        ec2.InitFile.fromFileInline(
+          '/etc/init.d/node.sh',
+          path.join(__dirname, "./node.sh")
         )
+      )
     );
     workshopASG.addUserData(readFileSync('./lib/user-data.sh', 'utf8'));
     const mergeScript = `var a  = JSON.parse(require("/var/www/inc/dbinfo.json"));\
@@ -251,8 +252,8 @@ export class MainStack extends Stack {
       'service node.sh start'
     );
 
-    // ELB
-    const workshopAlb = new elbv2.ApplicationLoadBalancer(this, 'workshopAlb', {
+    // ELB for EC2 Model
+    const workshopEC2Alb = new elbv2.ApplicationLoadBalancer(this, 'workshopEC2Alb', {
       vpc: workshopVpc,
       internetFacing: true,
       vpcSubnets: {
@@ -260,11 +261,11 @@ export class MainStack extends Stack {
       }
     });
 
-    const listener = workshopAlb.addListener('Listener', {
+    const listenerEC2 = workshopEC2Alb.addListener('ListenerEC2', {
       port: 80
     });
 
-    listener.addTargets('ApplicationFleet', {
+    listenerEC2.addTargets('ApplicationFleetEC2', {
       port: 80,
       targets: [workshopASG]
     });
@@ -279,7 +280,7 @@ export class MainStack extends Stack {
       version: opensearch.EngineVersion.OPENSEARCH_2_3,
       removalPolicy: RemovalPolicy.DESTROY,
       vpc: workshopVpc,
-      vpcSubnets: [workshopVpc.selectSubnets({subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, availabilityZones: [workshopVpc.availabilityZones[0]]})],
+      vpcSubnets: [workshopVpc.selectSubnets({ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, availabilityZones: [workshopVpc.availabilityZones[0]] })],
       capacity: {
         dataNodes: 2,
         dataNodeInstanceType: 'r6g.xlarge.search',
@@ -305,10 +306,22 @@ export class MainStack extends Stack {
       })]
     });
     workshopOpensearch.connections.allowFromAnyIpv4(ec2.Port.tcp(443));
-    
+
+    // EKS Cluster
+    const eksClusterProps: EksClusterProps = {
+      fakerApiUrl: logFaker.fakerApiUrl,
+      dbSecretName: workshopDB_secretName,
+      domainName: cloudFrontToS3.domainName,
+      workshopVpc: workshopVpc,
+      webSiteS3: webSiteS3,
+      dbSecurityGroup: dbSecurityGroup,
+    }
+    new EksClusterStack(this, 'eksClusterStack', eksClusterProps)
+
     // Outputs
     new CfnOutput(this, 'Region', { value: this.region })
-    new CfnOutput(this, 'ALB CNAME', { value: workshopAlb.loadBalancerDnsName })
+    new CfnOutput(this, 'EC2 Model ALB CNAME', { value: workshopEC2Alb.loadBalancerDnsName })
+    new CfnOutput(this, 'EKS Model NLB CNAME', { value: `Please go to \"https://${this.region}.console.aws.amazon.com/ec2/home?region=${this.region}#LoadBalancers:\" to find the NLB CNAME` })
     new CfnOutput(this, 'dbEndpoint', { value: workshopDB.instanceEndpoint.hostname });
 
     new CfnOutput(this, 's3Bucket', {
