@@ -30,34 +30,18 @@ spec:
     spec:
       containers:
         - name: e-commerce-svc
-          image: amazonlinux:latest
+          image: public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch/workshop-e-commerce:v1.1.0
+          env:
+          - name: CL_WORKSHOP_DB_SECRET_NAME
+            value: "$CL_WORKSHOP_DB_SECRET_NAME"
+          - name: CL_REGION
+            value: "$CL_REGION" # if you need to test by kubectl, you have to replace this value, this is for CDK deploy
+          - name: CL_CLOUDFRONT_DOMAIN_NAME
+            value: "$CL_CLOUDFRONT_DOMAIN_NAME"
           resources:
             limits:
               cpu: 800m
               memory: 4096Mi
-          args:
-            - /bin/bash
-            - -xec
-            - |
-              yum install -y awscli
-              yum install -y mysql
-              curl -sL https://rpm.nodesource.com/setup_17.x | bash -
-              yum install -y nodejs
-              aws s3 cp '$CL_S3_UI_URL' '/var/www/ui' --recursive
-              aws s3 cp '$CL_S3_SERVER_URL' '/var/www/server' --recursive
-              mkdir /var/www/inc/
-              echo $(aws secretsmanager get-secret-value --secret-id $CL_WORKSHOP_DB_SECRET_NAME --query SecretString --output json --region $CL_REGION) > /var/www/inc/dbinfo.json
-              echo 'var a  = JSON.parse(require("/var/www/inc/dbinfo.json"));    var b = require("/var/www/server/ormconfig.json");    var output = Object.assign({}, b, a);    output.database = a.dbname;    var fs = require("fs");    fs.writeFile("/var/www/server/ormconfig.json", JSON.stringify(output), function(err){});' > mergeDBInfo.js
-              node mergeDBInfo.js
-              cd /var/www/ui
-              npm install && npm run build
-              mkdir -p /usr/share/nginx/html/
-              yes | cp -r /var/www/ui/build/* /usr/share/nginx/html/
-              sed -i 's/$WORKSHOP_CDN_DOMAIN/$CL_CLOUDFRONT_DOMAIN_NAME/' /var/www/server/src/controllers/mockdata.ts
-              echo "{\"fakerAPIUrl\":\"$CL_LOG_GENERATOR_URL\"}" > /usr/share/nginx/html/config.json
-              cd /var/www/server/
-              npm install && npm run start
-
           ports:
             - containerPort: 4000
               protocol: TCP

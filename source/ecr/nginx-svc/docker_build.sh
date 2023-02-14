@@ -1,0 +1,1 @@
+docker build -t centralized-logging-with-opensearch/workshop-nginx -f Dockerfile ../../

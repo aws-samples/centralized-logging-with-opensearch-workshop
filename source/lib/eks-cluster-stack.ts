@@ -23,10 +23,15 @@ import { Construct } from "constructs";
 import {
     Aws,
     CfnResource,
+    Duration,
+    CustomResource,
     aws_s3 as s3,
     aws_iam as iam,
     aws_ec2 as ec2, // import ec2 library
-    aws_eks as eks
+    aws_eks as eks,
+    aws_wafv2 as wafv2,
+    aws_lambda as lambda,
+    custom_resources as cr,
 } from "aws-cdk-lib";
 import { IVpc } from 'aws-cdk-lib/aws-ec2';
 import { KubectlV24Layer } from '@aws-cdk/lambda-layer-kubectl-v24';
@@ -55,6 +60,9 @@ export interface EksClusterProps {
 }
 
 export class EksClusterStack extends Construct {
+
+    readonly eksAlbAddressName: any
+
     constructor(scope: Construct, id: string, props: EksClusterProps) {
         super(scope, id);
         // Create the EKS Cluster
@@ -67,11 +75,16 @@ export class EksClusterStack extends Construct {
             vpcSubnets: [{ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }],
             mastersRole: clusterAdminRole,
             defaultCapacity: 1,
+            defaultCapacityInstance: new ec2.InstanceType('m5.large'),
             version: eks.KubernetesVersion.V1_24, // If using containerD, you need set to V1_24
             kubectlLayer: new KubectlV24Layer(this, 'Kubectlv24Layer'),
+            albController: {
+                version: eks.AlbControllerVersion.V2_4_1,
+            },
             clusterName: `Workshop-Cluster`,
             endpointAccess: eks.EndpointAccess.PUBLIC,
         });
+        cluster.node.addDependency(props.workshopVpc)
 
         const s3BucketPolicy = new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
@@ -107,39 +120,154 @@ export class EksClusterStack extends Construct {
         cluster.defaultNodegroup!.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'));
         cluster.defaultNodegroup!.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
         props.dbSecurityGroup.connections.allowFrom(cluster, ec2.Port.tcp(3306));
-        props.dbSecurityGroup.connections.allowFrom(cluster, ec2.Port.tcp(22));
 
         const yaml = require('js-yaml');
 
-        const nginxIngressControllerYaml = yaml.loadAll(readFileSync(path.join(__dirname, "../manifest/nginx-ingress-controller-v1.5.1.yaml")));
-        cluster.addManifest('ingressController', ...nginxIngressControllerYaml);
-
-        const javaIngressYaml = yaml.loadAll(readFileSync(path.join(__dirname, "../manifest/cl-workshop-java.yaml")));
-        cluster.addManifest('java', ...javaIngressYaml);
+        const javaYaml = yaml.loadAll(readFileSync(path.join(__dirname, "../manifest/cl-workshop-java.yaml")));
+        cluster.addManifest('java', ...javaYaml);
 
         const ingressYaml = yaml.loadAll(readFileSync(path.join(__dirname, "../manifest/cl-workshop-ingress.yaml")));
-        cluster.addManifest('ingress', ...ingressYaml);
+        const ingressManifest = cluster.addManifest('ingress', ...ingressYaml);
 
         var nodeYamlString = readFileSync(path.join(__dirname, "../manifest/cl-workshop-e-commerce-svc.yaml"), 'utf8');
-        nodeYamlString = nodeYamlString.replace('$CL_S3_UI_URL', props.webSiteS3.s3UrlForObject('ui'))
-            .replace('$CL_S3_SERVER_URL', props.webSiteS3.s3UrlForObject('server'))
-            .replace('$CL_WORKSHOP_DB_SECRET_NAME', props.dbSecretName)
+        nodeYamlString = nodeYamlString.replace('$CL_WORKSHOP_DB_SECRET_NAME', props.dbSecretName)
             .replace('$CL_REGION', Aws.REGION)
-            .replace('$CL_CLOUDFRONT_DOMAIN_NAME', props.domainName)
-            .replace('$CL_LOG_GENERATOR_URL', props.fakerApiUrl);
+            .replace('$CL_CLOUDFRONT_DOMAIN_NAME', props.domainName);
         const nodeYaml = yaml.loadAll(nodeYamlString)
         cluster.addManifest('node', ...nodeYaml);
 
         var nginxYamlString = readFileSync(path.join(__dirname, "../manifest/cl-workshop-nginx-svc.yaml"), 'utf8');
-        nginxYamlString = nginxYamlString.replace('$CL_S3_UI_URL', props.webSiteS3.s3UrlForObject('ui'))
-            .replace('$CL_S3_SERVER_URL', props.webSiteS3.s3UrlForObject('server'))
-            .replace('$CL_WORKSHOP_DB_SECRET_NAME', props.dbSecretName)
+        nginxYamlString = nginxYamlString.replace('$CL_WORKSHOP_DB_SECRET_NAME', props.dbSecretName)
             .replace('$CL_REGION', Aws.REGION)
             .replace('$CL_CLOUDFRONT_DOMAIN_NAME', props.domainName)
             .replace('$CL_LOG_GENERATOR_URL', props.fakerApiUrl);
         const nginxYaml = yaml.loadAll(nginxYamlString)
         cluster.addManifest('nginx', ...nginxYaml);
 
+        ingressManifest.node.addDependency(cluster.albController!);
+        ingressManifest.node.addDependency(props.workshopVpc)
 
+        // WAF
+        const eksWebACL = new wafv2.CfnWebACL(this, 'EKSWebAcl', {
+            defaultAction: {
+                allow: {}
+            },
+            scope: 'REGIONAL',
+            visibilityConfig: {
+                cloudWatchMetricsEnabled: true,
+                metricName: 'MetricForEKSWebACLCDK',
+                sampledRequestsEnabled: true,
+            },
+            name: 'CLWorkshopEKSWebAcl',
+            description: 'Web Acl for Centralized Logging with OpenSearch workshop EKS Structure',
+            rules: [{
+                name: 'CRSRule',
+                priority: 0,
+                statement: {
+                    managedRuleGroupStatement: {
+                        name: 'AWSManagedRulesCommonRuleSet',
+                        vendorName: 'AWS',
+                        excludedRules: [{ name: 'SizeRestrictions_BODY' }]
+                    }
+                },
+                visibilityConfig: {
+                    cloudWatchMetricsEnabled: true,
+                    metricName: 'MetricForEKSWebACLCDK-CRS',
+                    sampledRequestsEnabled: true,
+                },
+                overrideAction: {
+                    none: {}
+                },
+            }]
+        })
+
+
+        const eksAlbAddress = new eks.KubernetesObjectValue(this, 'EKSLoadBalancerAttribute', {
+            cluster: cluster,
+            objectType: 'ingress',
+            objectNamespace: "default",
+            objectName: 'server-ingress',
+            jsonPath: '.status.loadBalancer.ingress[0].hostname', // https://kubernetes.io/docs/reference/kubectl/jsonpath/
+        });
+
+        this.eksAlbAddressName = eksAlbAddress.value
+
+        // Create the policy and role for the Lambda to create and delete CloudWatch Log Group Subscription Filter
+        const wafAssociationHelperFnPolicy = new iam.Policy(
+            this,
+            "wafAssociationHelperFnPolicy",
+            {
+                policyName: `${Aws.STACK_NAME}-wafAssociationHelperFnPolicy`,
+                statements: [
+                    new iam.PolicyStatement({
+                        actions: [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents",
+                            "logs:PutSubscriptionFilter",
+                            "logs:putDestination",
+                            "logs:putDestinationPolicy",
+                            "logs:DeleteSubscriptionFilter",
+                            "logs:DescribeLogGroups",
+                        ],
+                        resources: [
+                            `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`,
+                        ],
+                    }),
+                    new iam.PolicyStatement({
+                        actions: [
+                            "elasticloadbalancing:DescribeLoadBalancers",
+                            "elasticloadbalancing:SetWebACL"
+                        ],
+                        resources: [`*`], // Here we have to set the resource to *, or the lambda will break.
+                    }),
+                    new iam.PolicyStatement({
+                        actions: [
+                            "wafv2:AssociateWebACL",
+                        ],
+                        resources: [`arn:${Aws.PARTITION}:wafv2:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`]
+                    }),
+                ],
+            }
+        );
+        const wafAssociationHelperFnRole = new iam.Role(this, "wafAssociationHelperFnRole", {
+            assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+        });
+        wafAssociationHelperFnPolicy.attachToRole(wafAssociationHelperFnRole);
+
+        // Lambda to create WAF Association for EKS ALB
+        const wafAssociationHelperFn = new lambda.Function(this, "wafAssociationHelperFn", {
+            description: `${Aws.STACK_NAME} - Create WAF Association for EKS ALB`,
+            runtime: lambda.Runtime.PYTHON_3_9,
+            handler: "waf_association_helper.lambda_handler",
+            code: lambda.Code.fromAsset(
+                path.join(__dirname, "../lambda/")
+            ),
+            memorySize: 256,
+            timeout: Duration.seconds(60),
+            role: wafAssociationHelperFnRole,
+            environment: {
+                ALB_DNS_NAME: eksAlbAddress.value,
+                WAF_ACL_ARN: eksWebACL.attrArn,
+            },
+        });
+        wafAssociationHelperFn.node.addDependency(eksWebACL);
+        wafAssociationHelperFn.node.addDependency(cluster);
+
+        const wafAssociationHelperProvider = new cr.Provider(this, "wafAssociationHelperProvider", {
+            onEventHandler: wafAssociationHelperFn,
+        });
+
+        wafAssociationHelperProvider.node.addDependency(wafAssociationHelperFn);
+
+        const wafAssociationHelperlambdaTrigger = new CustomResource(
+            this,
+            "wafAssociationHelperlambdaTrigger",
+            {
+                serviceToken: wafAssociationHelperProvider.serviceToken,
+            }
+        );
+
+        wafAssociationHelperlambdaTrigger.node.addDependency(wafAssociationHelperProvider);
     }
 }

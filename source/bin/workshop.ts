@@ -22,4 +22,6 @@ import { MainStack } from '../lib/workshop-stack';
 
 const app = new App();
 
-new MainStack(app, 'CentralizedLoggingWorkshop');
+new MainStack(app, 'CLWorkshopOnlyEC2', { webStructure: "ONLY_EC2" });
+new MainStack(app, 'CLWorkshopOnlyEKS', { webStructure: "ONLY_EKS" });
+new MainStack(app, 'CLWorkshopEC2AndEKS', { webStructure: "EC2_AND_EKS" });
