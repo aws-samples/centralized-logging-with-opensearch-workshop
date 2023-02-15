@@ -13,5 +13,3 @@ sed -i "s/\$WORKSHOP_CDN_DOMAIN/$CL_CLOUDFRONT_DOMAIN_NAME/" /var/www/server/src
 
 cd /var/www/server/
 npm install && npm run start
-
-tail -f /dev/null

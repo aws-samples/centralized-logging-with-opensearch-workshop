@@ -29,7 +29,7 @@ describe("MainStack", () => {
     const app = new App();
 
     // WHEN
-    const stack = new workshop.MainStack(app, 'MyTestStack', {webStructure: "EC2_AND_EKS"});
+    const stack = new workshop.MainStack(app, 'MyTestStack', {runType: "EC2_AND_EKS"});
     const template = Template.fromStack(stack);
 
     // Mocker data API

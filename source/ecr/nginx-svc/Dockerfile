@@ -2,7 +2,7 @@ FROM amazonlinux:latest
 
 RUN yum update -y && yum install -y awscli mysql
 RUN amazon-linux-extras install -y nginx1
-RUN curl -sL https://rpm.nodesource.com/setup_17.x | bash -
+RUN curl -sL https://rpm.nodesource.com/setup_16.x | bash -
 RUN yum install -y nodejs
 
 ENV CL_WORKSHOP_DB_SECRET_NAME ''

@@ -25,7 +25,6 @@ import {
   Aws,
   Duration,
   CfnResource,
-  CfnOutput,
   aws_s3 as s3,
   aws_iam as iam,
   aws_apigateway as apigateway,
@@ -160,7 +159,6 @@ export class LogFakerStack extends Construct {
         widget.addMethod("POST", postWidgetIntegration); // POST /{logType}
 
         this.fakerApiUrl = api.url;
-        new CfnOutput(this, 'apiUrl', { value: api.url });
 
     }
 }

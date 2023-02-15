@@ -22,6 +22,6 @@ import { MainStack } from '../lib/workshop-stack';
 
 const app = new App();
 
-new MainStack(app, 'CLWorkshopOnlyEC2', { webStructure: "ONLY_EC2" });
-new MainStack(app, 'CLWorkshopOnlyEKS', { webStructure: "ONLY_EKS" });
-new MainStack(app, 'CLWorkshopEC2AndEKS', { webStructure: "EC2_AND_EKS" });
+new MainStack(app, 'CLWorkshopEC2', { runType: "EC2" });
+new MainStack(app, 'CLWorkshopEKS', { runType: "EKS" });
+new MainStack(app, 'CLWorkshopEC2AndEKS', { runType: "EC2_AND_EKS" });

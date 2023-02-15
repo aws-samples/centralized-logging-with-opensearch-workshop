@@ -55,12 +55,12 @@ export interface MainProps extends StackProps {
   /**
    * E-Commerce Web Site Structure type, it can be hosted on EC2, EKS or both of them.
    */
-  webStructure?: string;
+  runType?: string;
 }
 
-export const enum WebStructureType {
-  ONLY_EC2 = "ONLY_EC2",
-  ONLY_EKS = "ONLY_EKS",
+export const enum RunType {
+  EC2 = "EC2",
+  EKS = "EKS",
   EC2_AND_EKS = "EC2_AND_EKS"
 }
 
@@ -68,7 +68,7 @@ export class MainStack extends Stack {
   constructor(scope: Construct, id: string, props: MainProps) {
     super(scope, id, props);
 
-    this.templateOptions.description = `E-Commerce Demo Site for Centralized Logging with OpenSearch workshop. Template version ${VERSION}`;
+    this.templateOptions.description = `Centralized Logging with OpenSearch Workshop Stack. Template version ${VERSION}`;
 
     // upload workshop simple app to s3.
     const webSiteS3 = new s3.Bucket(this, 'clWorkshopWeb', {
@@ -187,7 +187,7 @@ export class MainStack extends Stack {
       cloudwatchLogsExports: ['error', 'slowquery', 'audit']
     });
 
-    if (props.webStructure === WebStructureType.ONLY_EC2 || props.webStructure === WebStructureType.EC2_AND_EKS) {
+    if (props.runType === RunType.EC2 || props.runType === RunType.EC2_AND_EKS) {
       // EC2 Cluster
       const ec2ClusterProps: Ec2ClusterProps = {
         fakerApiUrl: logFaker.fakerApiUrl,
@@ -202,12 +202,12 @@ export class MainStack extends Stack {
         logFaker: logFaker
       }
       const ec2ClusterStack = new Ec2ClusterStack(this, 'ec2ClusterStack', ec2ClusterProps)
-      new CfnOutput(this, 'EC2ModelALBCNAME', {
-        description: "ALB CName for EC2 Model Web",
+      new CfnOutput(this, 'AlbEC2HostedWebsiteAddress', {
+        description: "ALB CName for EC2 hosted demo website",
         value: ec2ClusterStack.ec2AlbAddressName
       })
     }
-    if (props.webStructure === WebStructureType.ONLY_EKS || props.webStructure === WebStructureType.EC2_AND_EKS) {
+    if (props.runType === RunType.EKS || props.runType === RunType.EC2_AND_EKS) {
 
       // EKS Cluster
       const eksClusterProps: EksClusterProps = {
@@ -219,8 +219,8 @@ export class MainStack extends Stack {
         dbSecurityGroup: dbSecurityGroup,
       }
       const eksClusterStack = new EksClusterStack(this, 'eksClusterStack', eksClusterProps)
-      new CfnOutput(this, "EKSModelALBCNAME", {
-        description: "ALB CName for EKS Model Web",
+      new CfnOutput(this, "AlbEKSHostedWebsiteAddress", {
+        description: "ALB CName for EKS hosted demo website",
         value: eksClusterStack.eksAlbAddressName,
       })
     }
@@ -233,7 +233,7 @@ export class MainStack extends Stack {
       vpcSubnets: [workshopVpc.selectSubnets({ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, availabilityZones: [workshopVpc.availabilityZones[0]] })],
       capacity: {
         dataNodes: 2,
-        dataNodeInstanceType: 'r6g.xlarge.search',
+        dataNodeInstanceType: 'r6g.large.search',
       },
       nodeToNodeEncryption: true,
       encryptionAtRest: {
@@ -258,21 +258,5 @@ export class MainStack extends Stack {
     workshopOpensearch.connections.allowFromAnyIpv4(ec2.Port.tcp(443));
 
 
-    // Outputs
-    new CfnOutput(this, 'Region', { value: this.region })
-    new CfnOutput(this, 'dbEndpoint', { value: workshopDB.instanceEndpoint.hostname });
-
-    new CfnOutput(this, 's3Bucket', {
-      value: webSiteS3.bucketArn,
-    });
-    new CfnOutput(this, 'opensearchDomain', {
-      value: workshopOpensearch.domainEndpoint
-    });
-    new CfnOutput(this, 'cloudFront', {
-      value: cloudFrontToS3.domainName
-    });
-    new CfnOutput(this, 'fakerAPIURL', {
-      value: logFaker.fakerApiUrl
-    })
   }
 }

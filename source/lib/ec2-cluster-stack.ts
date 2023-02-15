@@ -22,7 +22,6 @@ import { readFileSync } from 'fs';
 import { Construct } from "constructs";
 import {
     Aws,
-    aws_wafv2 as wafv2,
     aws_iam as iam,
     aws_autoscaling as au,
     CfnResource,
@@ -34,6 +33,7 @@ import {
     aws_cloudfront as cdn,
 } from "aws-cdk-lib";
 import { IVpc } from 'aws-cdk-lib/aws-ec2';
+import { WAFClusterStack } from './waf-stack';
 
 /**
  * cfn-nag suppression rule interface
@@ -166,48 +166,16 @@ export class Ec2ClusterStack extends Construct {
             targets: [workshopASG]
         });
 
-        // WAF
-        const ec2WebACL = new wafv2.CfnWebACL(this, 'EC2WebAcl', {
-            defaultAction: {
-                allow: {}
-            },
-            scope: 'REGIONAL',
-            visibilityConfig: {
-                cloudWatchMetricsEnabled: true,
-                metricName: 'MetricForEC2WebACLCDK',
-                sampledRequestsEnabled: true,
-            },
-            name: 'CLWorkshopEC2WebAcl',
-            description: 'Web Acl for Centralized Logging with OpenSearch workshop EC2 Structure',
-            rules: [{
-                name: 'CRSRule',
-                priority: 0,
-                statement: {
-                    managedRuleGroupStatement: {
-                        name: 'AWSManagedRulesCommonRuleSet',
-                        vendorName: 'AWS',
-                        excludedRules: [{ name: 'SizeRestrictions_BODY' }]
-                    }
-                },
-                visibilityConfig: {
-                    cloudWatchMetricsEnabled: true,
-                    metricName: 'MetricForEC2WebACLCDK-CRS',
-                    sampledRequestsEnabled: true,
-                },
-                overrideAction: {
-                    none: {}
-                },
-            }]
-        })
-        new wafv2.CfnWebACLAssociation(this, 'EC2WebACLAssociation', {
-            resourceArn: workshopEC2Alb.loadBalancerArn,
-            webAclArn: ec2WebACL.attrArn,
-        });
-
         // Connections
         props.dbSecurityGroup.connections.allowFrom(workshopASG, ec2.Port.tcp(3306));
         props.dbSecurityGroup.connections.allowFrom(workshopASG, ec2.Port.tcp(22));
 
         this.ec2AlbAddressName = workshopEC2Alb.loadBalancerDnsName
+        
+        const wafStack = new WAFClusterStack(this, 'ec2WafStack', {
+            albDnsName: workshopEC2Alb.loadBalancerDnsName,
+            runType: "EC2"
+        })
+        wafStack.node.addDependency(workshopEC2Alb);
     }
 }

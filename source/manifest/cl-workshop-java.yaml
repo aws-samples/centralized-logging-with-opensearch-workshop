@@ -29,19 +29,11 @@ spec:
     spec:
       containers:
         - name: spring-boot
-          image: openjdk:11-jre
+          image: public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch-workshop/nginx:v1.1.0
           resources:
             limits:
               cpu: 200m
               memory: 512Mi
-          args:
-            - /bin/bash
-            - -xec
-            - |
-              cd /tmp
-              wget https://aws-gcr-solutions.s3.amazonaws.com/log-hub-workshop/v1.0.0/petstore-0.0.1-SNAPSHOT.jar
-              mkdir -p /var/log/spring-boot/
-              java -jar petstore-0.0.1-SNAPSHOT.jar --server.port=8080 | tee /var/log/spring-boot/access.log
           ports:
             - containerPort: 8080
               protocol: TCP

@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: e-commerce-svc
-          image: public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch/workshop-e-commerce:v1.1.0
+          image: public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch-workshop/e-commerce:v1.1.0
           env:
           - name: CL_WORKSHOP_DB_SECRET_NAME
             value: "$CL_WORKSHOP_DB_SECRET_NAME"
@@ -40,8 +40,8 @@ spec:
             value: "$CL_CLOUDFRONT_DOMAIN_NAME"
           resources:
             limits:
-              cpu: 800m
-              memory: 4096Mi
+              cpu: 250m
+              memory: 256Mi
           ports:
             - containerPort: 4000
               protocol: TCP

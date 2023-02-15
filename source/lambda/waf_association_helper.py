@@ -21,11 +21,13 @@ def lambda_handler(event, _):
     logger.info(event)
     request_type = event["RequestType"]
     if request_type == "Create" or request_type == "Update":
-        return on_create(event)
+        return associate_web_acl(event)
+    if request_type == "Delete":
+        return disassociate_web_acl(event)
     raise Exception("Invalid request type: %s" % request_type)
 
 
-def on_create(_):
+def associate_web_acl(_):
     # Associate the ALB with the WAF
     load_balancer_arn = get_alb_arn_by_dns(alb_dns_name)
 
@@ -43,6 +45,25 @@ def on_create(_):
     return {
         "statusCode": 200,
         "body": json.dumps(f'Associate ALB {load_balancer_arn} to WAF {waf_acl_arn} success!'),
+    }
+
+def disassociate_web_acl(_):
+    # Disassociate the ALB with the WAF
+    load_balancer_arn = get_alb_arn_by_dns(alb_dns_name)
+
+    try:
+        waf_client.disassociate_web_acl(
+            ResourceArn=load_balancer_arn
+        )
+
+        logger.info(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} success!')
+    except Exception as e:
+        logger.info(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} failed!')
+        logger.exception(e)
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} success!'),
     }
 
 def get_alb_arn_by_dns(alb_dns_name):

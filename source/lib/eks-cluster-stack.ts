@@ -23,18 +23,14 @@ import { Construct } from "constructs";
 import {
     Aws,
     CfnResource,
-    Duration,
-    CustomResource,
     aws_s3 as s3,
     aws_iam as iam,
     aws_ec2 as ec2, // import ec2 library
     aws_eks as eks,
-    aws_wafv2 as wafv2,
-    aws_lambda as lambda,
-    custom_resources as cr,
 } from "aws-cdk-lib";
 import { IVpc } from 'aws-cdk-lib/aws-ec2';
 import { KubectlV24Layer } from '@aws-cdk/lambda-layer-kubectl-v24';
+import { WAFClusterStack } from './waf-stack';
 
 /**
  * cfn-nag suppression rule interface
@@ -147,41 +143,6 @@ export class EksClusterStack extends Construct {
         ingressManifest.node.addDependency(cluster.albController!);
         ingressManifest.node.addDependency(props.workshopVpc)
 
-        // WAF
-        const eksWebACL = new wafv2.CfnWebACL(this, 'EKSWebAcl', {
-            defaultAction: {
-                allow: {}
-            },
-            scope: 'REGIONAL',
-            visibilityConfig: {
-                cloudWatchMetricsEnabled: true,
-                metricName: 'MetricForEKSWebACLCDK',
-                sampledRequestsEnabled: true,
-            },
-            name: 'CLWorkshopEKSWebAcl',
-            description: 'Web Acl for Centralized Logging with OpenSearch workshop EKS Structure',
-            rules: [{
-                name: 'CRSRule',
-                priority: 0,
-                statement: {
-                    managedRuleGroupStatement: {
-                        name: 'AWSManagedRulesCommonRuleSet',
-                        vendorName: 'AWS',
-                        excludedRules: [{ name: 'SizeRestrictions_BODY' }]
-                    }
-                },
-                visibilityConfig: {
-                    cloudWatchMetricsEnabled: true,
-                    metricName: 'MetricForEKSWebACLCDK-CRS',
-                    sampledRequestsEnabled: true,
-                },
-                overrideAction: {
-                    none: {}
-                },
-            }]
-        })
-
-
         const eksAlbAddress = new eks.KubernetesObjectValue(this, 'EKSLoadBalancerAttribute', {
             cluster: cluster,
             objectType: 'ingress',
@@ -192,82 +153,10 @@ export class EksClusterStack extends Construct {
 
         this.eksAlbAddressName = eksAlbAddress.value
 
-        // Create the policy and role for the Lambda to create and delete CloudWatch Log Group Subscription Filter
-        const wafAssociationHelperFnPolicy = new iam.Policy(
-            this,
-            "wafAssociationHelperFnPolicy",
-            {
-                policyName: `${Aws.STACK_NAME}-wafAssociationHelperFnPolicy`,
-                statements: [
-                    new iam.PolicyStatement({
-                        actions: [
-                            "logs:CreateLogGroup",
-                            "logs:CreateLogStream",
-                            "logs:PutLogEvents",
-                            "logs:PutSubscriptionFilter",
-                            "logs:putDestination",
-                            "logs:putDestinationPolicy",
-                            "logs:DeleteSubscriptionFilter",
-                            "logs:DescribeLogGroups",
-                        ],
-                        resources: [
-                            `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`,
-                        ],
-                    }),
-                    new iam.PolicyStatement({
-                        actions: [
-                            "elasticloadbalancing:DescribeLoadBalancers",
-                            "elasticloadbalancing:SetWebACL"
-                        ],
-                        resources: [`*`], // Here we have to set the resource to *, or the lambda will break.
-                    }),
-                    new iam.PolicyStatement({
-                        actions: [
-                            "wafv2:AssociateWebACL",
-                        ],
-                        resources: [`arn:${Aws.PARTITION}:wafv2:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`]
-                    }),
-                ],
-            }
-        );
-        const wafAssociationHelperFnRole = new iam.Role(this, "wafAssociationHelperFnRole", {
-            assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
-        });
-        wafAssociationHelperFnPolicy.attachToRole(wafAssociationHelperFnRole);
-
-        // Lambda to create WAF Association for EKS ALB
-        const wafAssociationHelperFn = new lambda.Function(this, "wafAssociationHelperFn", {
-            description: `${Aws.STACK_NAME} - Create WAF Association for EKS ALB`,
-            runtime: lambda.Runtime.PYTHON_3_9,
-            handler: "waf_association_helper.lambda_handler",
-            code: lambda.Code.fromAsset(
-                path.join(__dirname, "../lambda/")
-            ),
-            memorySize: 256,
-            timeout: Duration.seconds(60),
-            role: wafAssociationHelperFnRole,
-            environment: {
-                ALB_DNS_NAME: eksAlbAddress.value,
-                WAF_ACL_ARN: eksWebACL.attrArn,
-            },
-        });
-        wafAssociationHelperFn.node.addDependency(eksWebACL);
-        wafAssociationHelperFn.node.addDependency(cluster);
-
-        const wafAssociationHelperProvider = new cr.Provider(this, "wafAssociationHelperProvider", {
-            onEventHandler: wafAssociationHelperFn,
-        });
-
-        wafAssociationHelperProvider.node.addDependency(wafAssociationHelperFn);
-
-        const wafAssociationHelperlambdaTrigger = new CustomResource(
-            this,
-            "wafAssociationHelperlambdaTrigger",
-            {
-                serviceToken: wafAssociationHelperProvider.serviceToken,
-            }
-        );
-
-        wafAssociationHelperlambdaTrigger.node.addDependency(wafAssociationHelperProvider);
+        const wafStack = new WAFClusterStack(this, 'eksWafStack', {
+            albDnsName: eksAlbAddress.value,
+            runType: "EKS"
+        })
+        wafStack.node.addDependency(cluster);
     }
 }
