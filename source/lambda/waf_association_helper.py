@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-alb_dns_name = os.environ.get('ALB_DNS_NAME')
+alb_dns_names = os.environ.get('ALB_DNS_NAMES')
 waf_acl_arn = os.environ.get('WAF_ACL_ARN')
 
 waf_client = boto3.client('wafv2')
@@ -21,61 +21,63 @@ def lambda_handler(event, _):
     logger.info(event)
     request_type = event["RequestType"]
     if request_type == "Create" or request_type == "Update":
-        return associate_web_acl(event)
+        return associate_web_acl()
     if request_type == "Delete":
-        return disassociate_web_acl(event)
+        return disassociate_web_acl()
     raise Exception("Invalid request type: %s" % request_type)
 
 
-def associate_web_acl(_):
+def associate_web_acl():
     # Associate the ALB with the WAF
-    load_balancer_arn = get_alb_arn_by_dns(alb_dns_name)
+    load_balancer_arns = get_alb_arn_by_dns(alb_dns_names)
+    
+    for load_balancer_arn in load_balancer_arns:
+        try:
+            waf_client.associate_web_acl(
+                WebACLArn=waf_acl_arn,
+                ResourceArn=load_balancer_arn
+            )
 
-    try:
-        waf_client.associate_web_acl(
-            WebACLArn=waf_acl_arn,
-            ResourceArn=load_balancer_arn
-        )
-
-        logger.info(f'Associate ALB {load_balancer_arn} to WAF {waf_acl_arn} success!')
-    except Exception as e:
-        logger.info(f'Associate ALB {load_balancer_arn} to WAF {waf_acl_arn} failed!')
-        logger.exception(e)
+            logger.info(f'Associate ALB {load_balancer_arn} to WAF {waf_acl_arn} success!')
+        except Exception as e:
+            logger.info(f'Associate ALB {load_balancer_arn} to WAF {waf_acl_arn} failed!')
+            logger.exception(e)
 
     return {
         "statusCode": 200,
-        "body": json.dumps(f'Associate ALB {load_balancer_arn} to WAF {waf_acl_arn} success!'),
+        "body": json.dumps(f'Associate ALB {load_balancer_arns} to WAF {waf_acl_arn} success!'),
     }
 
-def disassociate_web_acl(_):
+def disassociate_web_acl():
     # Disassociate the ALB with the WAF
-    load_balancer_arn = get_alb_arn_by_dns(alb_dns_name)
+    load_balancer_arns = get_alb_arn_by_dns(alb_dns_names)
 
-    try:
-        waf_client.disassociate_web_acl(
-            ResourceArn=load_balancer_arn
-        )
+    for load_balancer_arn in load_balancer_arns:
+        try:
+            waf_client.disassociate_web_acl(
+                ResourceArn=load_balancer_arn
+            )
 
-        logger.info(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} success!')
-    except Exception as e:
-        logger.info(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} failed!')
-        logger.exception(e)
+            logger.info(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} success!')
+        except Exception as e:
+            logger.info(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} failed!')
+            logger.exception(e)
 
     return {
         "statusCode": 200,
-        "body": json.dumps(f'Disassociate ALB {load_balancer_arn} from WAF {waf_acl_arn} success!'),
+        "body": json.dumps(f'Disassociate ALB {load_balancer_arns} from WAF {waf_acl_arn} success!'),
     }
 
-def get_alb_arn_by_dns(alb_dns_name):
+def get_alb_arn_by_dns(alb_dns_names):
     # Get a list of all the available load balancers
+    load_balancer_arns = []
     response = elbv2_client.describe_load_balancers()
 
     # Search for the load balancer with the specified DNS name
     for lb in response['LoadBalancers']:
-        if lb['DNSName'] == alb_dns_name:
+        if lb['DNSName'] in alb_dns_names.split(','):
             alb_arn = lb['LoadBalancerArn']
-            return alb_arn
-    else:
-        logger.info(f'ALB with DNS name "{alb_dns_name}" not found.')
-        raise Exception(f'ALB with DNS name "{alb_dns_name}" not found.')
+            load_balancer_arns.append(alb_arn)
+            continue
+    return load_balancer_arns
         

@@ -33,7 +33,6 @@ import {
     aws_cloudfront as cdn,
 } from "aws-cdk-lib";
 import { IVpc } from 'aws-cdk-lib/aws-ec2';
-import { WAFClusterStack } from './waf-stack';
 
 /**
  * cfn-nag suppression rule interface
@@ -171,11 +170,5 @@ export class Ec2ClusterStack extends Construct {
         props.dbSecurityGroup.connections.allowFrom(workshopASG, ec2.Port.tcp(22));
 
         this.ec2AlbAddressName = workshopEC2Alb.loadBalancerDnsName
-        
-        const wafStack = new WAFClusterStack(this, 'ec2WafStack', {
-            albDnsName: workshopEC2Alb.loadBalancerDnsName,
-            runType: "EC2"
-        })
-        wafStack.node.addDependency(workshopEC2Alb);
     }
 }

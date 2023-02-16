@@ -30,7 +30,6 @@ import {
 } from "aws-cdk-lib";
 import { IVpc } from 'aws-cdk-lib/aws-ec2';
 import { KubectlV24Layer } from '@aws-cdk/lambda-layer-kubectl-v24';
-import { WAFClusterStack } from './waf-stack';
 
 /**
  * cfn-nag suppression rule interface
@@ -152,11 +151,5 @@ export class EksClusterStack extends Construct {
         });
 
         this.eksAlbAddressName = eksAlbAddress.value
-
-        const wafStack = new WAFClusterStack(this, 'eksWafStack', {
-            albDnsName: eksAlbAddress.value,
-            runType: "EKS"
-        })
-        wafStack.node.addDependency(cluster);
     }
 }
