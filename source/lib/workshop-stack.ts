@@ -20,18 +20,12 @@ import * as path from 'path'
 
 import { Construct } from "constructs";
 import {
-  Fn,
   SecretValue,
   RemovalPolicy,
   Stack,
   StackProps,
   Duration,
   CfnOutput,
-  Aws,
-  aws_wafv2 as wafv2,
-  CustomResource,
-  aws_lambda as lambda,
-  custom_resources as cr,
   aws_s3 as s3,
   aws_s3_deployment as s3d,
   aws_iam as iam,
@@ -47,6 +41,7 @@ import { OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
 import { LogFakerStack, LogFakerProps } from './log-faker';
 import { Ec2ClusterStack, Ec2ClusterProps } from './ec2-cluster-stack'
 import { EksClusterStack, EksClusterProps } from './eks-cluster-stack'
+import { WafClusterStack } from './waf-stack'
 
 const { VERSION } = process.env;
 
@@ -76,7 +71,7 @@ export class MainStack extends Stack {
 
     this.templateOptions.description = `Centralized Logging with OpenSearch Workshop Stack. Template version ${VERSION}`;
 
-    var albDnsNameArray: string[] = [];
+    let albDnsNameArray: string[] = [];
 
     // upload workshop simple app to s3.
     const webSiteS3 = new s3.Bucket(this, 'clWorkshopWeb', {
@@ -235,171 +230,10 @@ export class MainStack extends Stack {
       albDnsNameArray.push(eksClusterStack.eksAlbAddressName);
     }
 
-    // WAF
-    const webACL = new wafv2.CfnWebACL(this, 'CentalWebACL', {
-      defaultAction: {
-        allow: {}
-      },
-      scope: 'REGIONAL',
-      visibilityConfig: {
-        cloudWatchMetricsEnabled: true,
-        metricName: 'MetricForWebACLCDK',
-        sampledRequestsEnabled: true,
-      },
-      name: `CentralCLWebACL-${props.runType}`,
-      rules: [
-        {
-          name: 'AWSManagedRulesAmazonIpReputation',
-          priority: 0,
-          statement: {
-            managedRuleGroupStatement: {
-              name: 'AWSManagedRulesAmazonIpReputationList',
-              vendorName: 'AWS',
-            }
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: 'MetricForWebACLCDK-IpRep',
-            sampledRequestsEnabled: true,
-          },
-          overrideAction: {
-            none: {}
-          },
-        },
-        {
-          name: 'AWSManagedRulesCommonRule',
-          priority: 1,
-          statement: {
-            managedRuleGroupStatement: {
-              name: 'AWSManagedRulesCommonRuleSet',
-              vendorName: 'AWS',
-              excludedRules: [{ name: 'SizeRestrictions_BODY' }]
-            }
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: 'MetricForWebACLCDK-CRS',
-            sampledRequestsEnabled: true,
-          },
-          overrideAction: {
-            none: {}
-          },
-        },
-        {
-          name: 'AWSManagedRulesKnownBadInputsRule',
-          priority: 2,
-          statement: {
-            managedRuleGroupStatement: {
-              name: 'AWSManagedRulesKnownBadInputsRuleSet',
-              vendorName: 'AWS',
-            }
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: 'MetricForWebACLCDK-BAD',
-            sampledRequestsEnabled: true,
-          },
-          overrideAction: {
-            none: {}
-          },
-        },
-        {
-          name: 'AWSManagedRulesSQLiRule',
-          priority: 3,
-          statement: {
-            managedRuleGroupStatement: {
-              name: 'AWSManagedRulesSQLiRuleSet',
-              vendorName: 'AWS',
-            }
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: 'MetricForWebACLCDK-SQLi',
-            sampledRequestsEnabled: true,
-          },
-          overrideAction: {
-            none: {}
-          },
-        }]
-    });
-
-    // Create the policy and role for the Lambda to create and delete CloudWatch Log Group Subscription Filter
-    const wafAssociationHelperFnPolicy = new iam.Policy(
-      this,
-      "wafAssociationHelperFnPolicy",
-      {
-        policyName: `${Aws.STACK_NAME}-wafAssociationHelperFnPolicy`,
-        statements: [
-          new iam.PolicyStatement({
-            actions: [
-              "logs:CreateLogGroup",
-              "logs:CreateLogStream",
-              "logs:PutLogEvents",
-              "logs:PutSubscriptionFilter",
-              "logs:putDestination",
-              "logs:putDestinationPolicy",
-              "logs:DeleteSubscriptionFilter",
-              "logs:DescribeLogGroups",
-            ],
-            resources: [
-              `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`,
-            ],
-          }),
-          new iam.PolicyStatement({
-            actions: [
-              "elasticloadbalancing:DescribeLoadBalancers",
-              "elasticloadbalancing:SetWebACL"
-            ],
-            resources: [`*`], // Here we have to set the resource to *, or the lambda will break.
-          }),
-          new iam.PolicyStatement({
-            actions: [
-              "wafv2:AssociateWebACL",
-              "wafv2:DisassociateWebACL",
-            ],
-            resources: [`arn:${Aws.PARTITION}:wafv2:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`]
-          }),
-        ],
-      }
-    );
-    const wafAssociationHelperFnRole = new iam.Role(this, "wafAssociationHelperFnRole", {
-      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
-    });
-    wafAssociationHelperFnPolicy.attachToRole(wafAssociationHelperFnRole);
-
-    // Lambda to create WAF Association for ALB
-    const wafAssociationHelperFn = new lambda.Function(this, "wafAssociationHelperFn", {
-      description: `${Aws.STACK_NAME} - Create WAF Association for ALBs`,
-      runtime: lambda.Runtime.PYTHON_3_9,
-      handler: "waf_association_helper.lambda_handler",
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "../lambda/")
-      ),
-      memorySize: 256,
-      timeout: Duration.seconds(60),
-      role: wafAssociationHelperFnRole,
-      environment: {
-        ALB_DNS_NAMES: Fn.join(",", albDnsNameArray),
-        WAF_ACL_ARN: webACL.attrArn,
-      },
-    });
-    wafAssociationHelperFn.node.addDependency(webACL);
-
-    const wafAssociationHelperProvider = new cr.Provider(this, "wafAssociationHelperProvider", {
-      onEventHandler: wafAssociationHelperFn,
-    });
-
-    wafAssociationHelperProvider.node.addDependency(wafAssociationHelperFn);
-
-    const wafAssociationHelperlambdaTrigger = new CustomResource(
-      this,
-      "wafAssociationHelperlambdaTrigger",
-      {
-        serviceToken: wafAssociationHelperProvider.serviceToken,
-      }
-    );
-
-    wafAssociationHelperlambdaTrigger.node.addDependency(wafAssociationHelperProvider);
+    new WafClusterStack(this, 'wafStack', {
+      albDnsNameArray: albDnsNameArray,
+      runType: props.runType!
+    })
 
     // Open Search
     const workshopOpensearch = new opensearch.Domain(this, 'workshopOpensearch', {

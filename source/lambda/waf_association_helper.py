@@ -78,6 +78,5 @@ def get_alb_arn_by_dns(alb_dns_names):
         if lb['DNSName'] in alb_dns_names.split(','):
             alb_arn = lb['LoadBalancerArn']
             load_balancer_arns.append(alb_arn)
-            continue
     return load_balancer_arns
         

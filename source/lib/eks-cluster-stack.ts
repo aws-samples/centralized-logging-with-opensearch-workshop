@@ -124,14 +124,14 @@ export class EksClusterStack extends Construct {
         const ingressYaml = yaml.loadAll(readFileSync(path.join(__dirname, "../manifest/cl-workshop-ingress.yaml")));
         const ingressManifest = cluster.addManifest('ingress', ...ingressYaml);
 
-        var nodeYamlString = readFileSync(path.join(__dirname, "../manifest/cl-workshop-e-commerce-svc.yaml"), 'utf8');
+        let nodeYamlString = readFileSync(path.join(__dirname, "../manifest/cl-workshop-e-commerce-svc.yaml"), 'utf8');
         nodeYamlString = nodeYamlString.replace('$CL_WORKSHOP_DB_SECRET_NAME', props.dbSecretName)
             .replace('$CL_REGION', Aws.REGION)
             .replace('$CL_CLOUDFRONT_DOMAIN_NAME', props.domainName);
         const nodeYaml = yaml.loadAll(nodeYamlString)
         cluster.addManifest('node', ...nodeYaml);
 
-        var nginxYamlString = readFileSync(path.join(__dirname, "../manifest/cl-workshop-nginx-svc.yaml"), 'utf8');
+        let nginxYamlString = readFileSync(path.join(__dirname, "../manifest/cl-workshop-nginx-svc.yaml"), 'utf8');
         nginxYamlString = nginxYamlString.replace('$CL_WORKSHOP_DB_SECRET_NAME', props.dbSecretName)
             .replace('$CL_REGION', Aws.REGION)
             .replace('$CL_CLOUDFRONT_DOMAIN_NAME', props.domainName)
