@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: spring-boot
-          image: public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch-workshop/nginx:v1.1.0
+          image: public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch-workshop/java:v1.1.0
           resources:
             limits:
               cpu: 200m

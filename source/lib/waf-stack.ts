@@ -68,7 +68,7 @@ export class WafClusterStack extends Construct {
                 metricName: 'MetricForWebACLCDK',
                 sampledRequestsEnabled: true,
             },
-            name: `CentralCLWebACL-${props.runType}`,
+            name: `CentralCLWebACL`,
             rules: [
                 {
                     name: 'AWSManagedRulesAmazonIpReputation',
