@@ -139,6 +139,16 @@ export class EksClusterStack extends Construct {
         const nginxYaml = yaml.loadAll(nginxYamlString)
         cluster.addManifest('nginx', ...nginxYaml);
 
+        let flogYamlString = readFileSync(path.join(__dirname, "../manifest/cl-workshop-log-generator.yaml"), 'utf8');
+        flogYamlString = flogYamlString.replace('$CL_WORKSHOP_BUCKET', props.webSiteS3.bucketName)
+            .replace('$CL_WORKSHOP_BUCKET', props.webSiteS3.bucketName)
+            .replace('$CL_WORKSHOP_BUCKET', props.webSiteS3.bucketName)    
+            .replace('$CL_REGION', Aws.REGION)
+            .replace('$CL_REGION', Aws.REGION)
+            .replace('$CL_REGION', Aws.REGION)
+        const flogYaml = yaml.loadAll(flogYamlString)
+        cluster.addManifest('flog', ...flogYaml);
+
         ingressManifest.node.addDependency(cluster.albController!);
         ingressManifest.node.addDependency(props.workshopVpc)
 

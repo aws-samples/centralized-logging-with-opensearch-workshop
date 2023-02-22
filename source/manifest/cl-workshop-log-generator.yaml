@@ -1,0 +1,153 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: benchmark-tool-config-waf-alb
+data:
+  RUNNING_MODE: "consist_mode"
+  NUMBER_OF_PROCESSES_PER_POD: "1"
+  LOG_GENERATION_PERIOD: "2s"
+  LOG_FORMAT: "waf-alb"
+  FLUENT_BIT_FLUSH_PERIOD_IN_SECONDS: "3"
+  REGION: "$CL_REGION"
+  NUMBER_OF_LINES: "1000"
+  BUCKET_NAME: "$CL_WORKSHOP_BUCKET"
+  TOTAL_FILE_SIZE: "50M"
+  UPLOAD_TIMEOUT: "2s"
+  JSON_DATE_KEY: "false"
+  JSON_DATE_FORMAT: "iso8601"
+  APPLICATION_NAME: "waf"
+  COMPRESSION: "gzip"
+  S3_KEY_FORMAT_TAG_DELIMITERS: ".-"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: benchmark-tool-config-waf-sql-ingestion
+data:
+  RUNNING_MODE: "consist_mode"
+  NUMBER_OF_PROCESSES_PER_POD: "1"
+  LOG_GENERATION_PERIOD: "60s"
+  LOG_FORMAT: "waf-sql-ingestion"
+  FLUENT_BIT_FLUSH_PERIOD_IN_SECONDS: "3"
+  REGION: "$CL_REGION"
+  NUMBER_OF_LINES: "1000"
+  BUCKET_NAME: "$CL_WORKSHOP_BUCKET"
+  TOTAL_FILE_SIZE: "50M"
+  UPLOAD_TIMEOUT: "2s"
+  JSON_DATE_KEY: "false"
+  JSON_DATE_FORMAT: "iso8601"
+  APPLICATION_NAME: "waf"
+  COMPRESSION: "gzip"
+  S3_KEY_FORMAT_TAG_DELIMITERS: ".-"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: benchmark-tool-config-waf-falsely-intercepted
+data:
+  RUNNING_MODE: "consist_mode"
+  NUMBER_OF_PROCESSES_PER_POD: "1"
+  LOG_GENERATION_PERIOD: "60s"
+  LOG_FORMAT: "waf-non-sql-ingestion"
+  FLUENT_BIT_FLUSH_PERIOD_IN_SECONDS: "3"
+  REGION: "$CL_REGION"
+  NUMBER_OF_LINES: "1000"
+  BUCKET_NAME: "$CL_WORKSHOP_BUCKET"
+  TOTAL_FILE_SIZE: "50M"
+  UPLOAD_TIMEOUT: "2s"
+  JSON_DATE_KEY: "false"
+  JSON_DATE_FORMAT: "iso8601"
+  APPLICATION_NAME: "waf"
+  COMPRESSION: "gzip"
+  S3_KEY_FORMAT_TAG_DELIMITERS: ".-"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: benchmark-tool-waf
+  labels:
+    app: flog-fluent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flog-fluent
+  template:
+    metadata:
+      labels:
+        app: flog-fluent
+    spec:
+      containers:
+        # WAF ALB
+        - name: flog-fluent-bit-waf-alb
+          image: public.ecr.aws/aws-gcr-solutions/benchmark-tool-mock-waf:latest
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          envFrom:
+            - configMapRef:
+                name: benchmark-tool-config-waf-alb
+          args:
+            - /bin/bash
+            - -xec
+            - |
+              /usr/local/fluent-bit/bin/runflb.sh $RUNNING_MODE $NUMBER_OF_PROCESSES_PER_POD
+              tail -f /dev/null
+          env:
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: S3_KEY_FORMAT
+            value: "/AWSLogs/WAFLogs/testwaf/alb/%Y/%m/%d/%H/cl-fake-log-%Y-%m-%d-%H-%M-%S-$UUID.gz"
+        # WAF SQL Ingestion
+        - name: flog-fluent-bit-waf-sql
+          image: public.ecr.aws/aws-gcr-solutions/benchmark-tool-mock-waf:latest
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          envFrom:
+            - configMapRef:
+                name: benchmark-tool-config-waf-sql-ingestion
+          args:
+            - /bin/bash
+            - -xec
+            - |
+              /usr/local/fluent-bit/bin/runflb.sh $RUNNING_MODE $NUMBER_OF_PROCESSES_PER_POD
+              tail -f /dev/null
+          env:
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: S3_KEY_FORMAT
+            value: "/AWSLogs/WAFLogs/testwaf/sql-ingestion/%Y/%m/%d/%H/cl-fake-log-%Y-%m-%d-%H-%M-%S-$UUID.gz"
+        # WAF Falsely Intercepted
+        - name: flog-fluent-bit-waf-falsely-intercepted
+          image: public.ecr.aws/aws-gcr-solutions/benchmark-tool-mock-waf:latest
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          envFrom:
+            - configMapRef:
+                name: benchmark-tool-config-waf-falsely-intercepted
+          args:
+            - /bin/bash
+            - -xec
+            - |
+              /usr/local/fluent-bit/bin/runflb.sh $RUNNING_MODE $NUMBER_OF_PROCESSES_PER_POD
+              tail -f /dev/null
+          env:
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: S3_KEY_FORMAT
+            value: "/AWSLogs/WAFLogs/testwaf/falsely-intercepted/%Y/%m/%d/%H/cl-fake-log-%Y-%m-%d-%H-%M-%S-$UUID.gz"

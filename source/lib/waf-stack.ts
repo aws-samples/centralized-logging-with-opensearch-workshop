@@ -23,6 +23,7 @@ import {
     Fn,
     Aws,
     aws_wafv2 as wafv2,
+    aws_s3 as s3,
     aws_iam as iam,
     Duration,
     CfnResource,
@@ -30,6 +31,8 @@ import {
     aws_lambda as lambda,
     custom_resources as cr,
 } from "aws-cdk-lib";
+
+import { KinesisFirehoseToS3 } from '@aws-solutions-constructs/aws-kinesisfirehose-s3';
 
 /**
  * cfn-nag suppression rule interface
@@ -48,6 +51,7 @@ export function addCfnNagSuppressRules(resource: CfnResource, rules: CfnNagSuppr
 export interface WafClusterProps {
     readonly albDnsNameArray: string[];
     readonly runType: string;
+    readonly logBucket: s3.Bucket;
 }
 
 export class WafClusterStack extends Construct {
@@ -145,6 +149,26 @@ export class WafClusterStack extends Construct {
                 }]
         });
 
+        const wafLogging = new KinesisFirehoseToS3(this, 'wafLogging', {
+            existingBucketObj: props.logBucket,
+            kinesisFirehoseProps: {
+                deliveryStreamName: `aws-waf-logs-${Aws.STACK_NAME}`,
+                deliveryStreamType: 'DirectPut',
+                deliveryStreamEncryptionConfigurationInput: {
+                    keyType: 'AWS_OWNED_CMK'
+                },
+                extendedS3DestinationConfiguration: {
+                    bufferingHints: {
+                        intervalInSeconds: 300,
+                        sizeInMBs: 5
+                    },
+                    compressionFormat: "GZIP",
+                    prefix: 'AWSLog/WAFLogs/',
+                    errorOutputPrefix: 'errors/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/hour=!{timestamp:HH}/!{firehose:error-output-type}'
+                }
+            }
+        })
+
         // Create the policy and role for the Lambda to create and delete CloudWatch Log Group Subscription Filter
         const wafAssociationHelperFnPolicy = new iam.Policy(
             this,
@@ -178,6 +202,8 @@ export class WafClusterStack extends Construct {
                         actions: [
                             "wafv2:AssociateWebACL",
                             "wafv2:DisassociateWebACL",
+                            "wafv2:PutLoggingConfiguration",
+                            "wafv2:DeleteLoggingConfiguration"
                         ],
                         resources: [`arn:${Aws.PARTITION}:wafv2:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`]
                     }),
@@ -203,6 +229,7 @@ export class WafClusterStack extends Construct {
             environment: {
                 ALB_DNS_NAMES: Fn.join(",", props.albDnsNameArray),
                 WAF_ACL_ARN: webACL.attrArn,
+                KDF_ARN: wafLogging.kinesisFirehose.attrArn
             },
         });
         wafAssociationHelperFn.node.addDependency(webACL);

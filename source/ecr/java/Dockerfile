@@ -1,5 +1,5 @@
 FROM openjdk:11-jre
 
-COPY /ecr/e-commerce-svc/start.sh .
+COPY /ecr/java/start.sh .
 RUN chmod +x start.sh
 CMD ["sh", "start.sh"]

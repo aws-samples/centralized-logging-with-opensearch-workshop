@@ -232,7 +232,8 @@ export class MainStack extends Stack {
 
     new WafClusterStack(this, 'wafStack', {
       albDnsNameArray: albDnsNameArray,
-      runType: props.runType!
+      runType: props.runType!,
+      logBucket: webSiteS3
     })
 
     // Open Search
