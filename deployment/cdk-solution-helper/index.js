@@ -151,6 +151,34 @@ fs.readdirSync(global_s3_assets).forEach(file => {
   //     })
   // });
 
+  const nestedStacks = Object.keys(resources).filter(function (key) {
+    return resources[key].Type === 'AWS::CloudFormation::Stack'
+  });
+  nestedStacks.forEach(function (f) {
+    const fn = template.Resources[f];
+    fn.Properties.TemplateURL = {
+      'Fn::Join': [
+        '',
+        [
+          fn.Metadata.domain,
+          '/',
+          `%%BUCKET_NAME%%/%%SOLUTION_NAME%%/%%VERSION%%/${fn.Metadata.nestedTemplateName}`
+        ]
+      ]
+    };
+
+    const params = fn.Properties.Parameters ? fn.Properties.Parameters : {};
+    const nestedStackParameters = Object.keys(params).filter(function (key) {
+      if (key.search(/[\w]*AssetParameters/g) > -1) {
+        return true;
+      }
+      return false;
+    });
+    nestedStackParameters.forEach(function (stkParam) {
+      fn.Properties.Parameters[stkParam] = undefined;
+    });
+  });
+
   // Clean-up parameters section
   const parameters = (template.Parameters) ? template.Parameters : {};
   const assetParameters = Object.keys(parameters).filter(function (key) {
