@@ -340,6 +340,14 @@ for f in `find . -iname \*.zip`; do
     rm $fname
 done
 
+export BUCKET_NAME=$1
+export SOLUTION_NAME=$2
+export VERSION=$3
+export GLOBAL_S3_ASSETS_PATH=$template_dist_dir
+export REGIONAL_S3_ASSETS_PATH=$build_dist_dir
+
+run $template_dir/cdk-solution-helper.py $staging_dist_dir
+
 # cleanup temporary generated files that are not needed for later stages of the build pipeline
 cleanup_temporary_generted_files
 
