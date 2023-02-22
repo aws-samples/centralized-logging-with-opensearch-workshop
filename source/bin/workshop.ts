@@ -17,11 +17,25 @@
  */
 
 import { App } from "aws-cdk-lib";
-import 'source-map-support/register';
-import { MainStack } from '../lib/workshop-stack';
+import "source-map-support/register";
+import { MainStack } from "../lib/workshop-stack";
+import { BootstraplessStackSynthesizer } from "cdk-bootstrapless-synthesizer";
 
 const app = new App();
 
-new MainStack(app, 'CLWorkshopEC2', { runType: "EC2" });
-new MainStack(app, 'CLWorkshopEKS', { runType: "EKS" });
-new MainStack(app, 'CLWorkshopEC2AndEKS', { runType: "EC2_AND_EKS" });
+new MainStack(app, "CLWorkshopEC2", {
+  runType: "EC2",
+  synthesizer: newSynthesizer()
+});
+new MainStack(app, "CLWorkshopEKS", {
+  runType: "EKS",
+  synthesizer: newSynthesizer()
+});
+new MainStack(app, "CLWorkshopEC2AndEKS", {
+  runType: "EC2_AND_EKS",
+  synthesizer: newSynthesizer()
+});
+
+function newSynthesizer() {
+  return process.env.USE_BSS ? new BootstraplessStackSynthesizer() : undefined;
+}

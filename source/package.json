@@ -27,6 +27,7 @@
   "dependencies": {
     "@aws-cdk/lambda-layer-kubectl-v24": "2.0.93",
     "@aws-solutions-constructs/aws-kinesisfirehose-s3": "2.32.0",
+    "cdk-bootstrapless-synthesizer": "^2",
     "aws-cdk": "2.64.0",
     "aws-cdk-lib": "2.64.0",
     "js-yaml": "4.1.0",
