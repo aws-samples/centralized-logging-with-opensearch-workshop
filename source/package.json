@@ -10,7 +10,16 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest --coverage",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "bump": "standard-version -i ../CHANGELOG.md",
+    "test:watch": "jest --watch",
+    "test:update": "jest --updateSnapshot",
+    "test:compile": "tsc --noEmit --project tsconfig.jest.json",
+    "eslint": "eslint --ext .ts,.tsx --fix --no-error-on-unmatched-pattern src test",
+    "diff": "cdk diff",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.88",
