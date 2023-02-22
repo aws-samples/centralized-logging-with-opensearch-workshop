@@ -33,7 +33,6 @@ normal=$(tput sgr0)
 # SETTINGS
 #------------------------------------------------------------------------------
 # Important: CDK global version number
-cdk_version=1.129.0 # Note: should match package.json
 template_format="json"
 run_helper="true"
 
@@ -93,7 +92,7 @@ do_replace()
 create_template_json() 
 {
     # Run 'cdk synth' to generate raw solution outputs
-    do_cmd cdk synth --output=$staging_dist_dir
+    do_cmd npx cdk synth --output=$staging_dist_dir
 
     # Remove unnecessary output files
     do_cmd cd $staging_dist_dir
@@ -119,7 +118,7 @@ create_template_yaml()
     maxrc=0
     for template in `cdk list`; do
         echo Create template $template
-        cdk synth $template > ${template_dist_dir}/${template}.template
+        npx cdk synth $template > ${template_dist_dir}/${template}.template
         if [[ $? > $maxrc ]]; then
             maxrc=$?
         fi
@@ -208,7 +207,7 @@ export DIST_OUTPUT_BUCKET=$SOLUTION_BUCKET
 if [ ! -z $3 ]; then
     export VERSION="$3"
 else
-    export VERSION=$(git describe --tags || echo v0.0.0)
+    export VERSION=$(git describe --tags --exact-match || { [ -n "$BRANCH_NAME" ] && echo "$BRANCH_NAME"; } || echo v0.0.0)
 fi
 
 
@@ -248,7 +247,6 @@ echo "--------------------------------------------------------------------------
 # for customers and developers to use, as it globally changes their environment.
 do_cmd cd $source_dir
 do_cmd npm install
-do_cmd npm install aws-cdk@$cdk_version
 
 # Add local install to PATH
 export PATH=$(npm bin):$PATH
