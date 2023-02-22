@@ -7,3 +7,7 @@
 RulesToSuppress:
 - id: W89
   reason: Lambda functions in this solution do not need to be deployed in a VPC
+- id: W76
+  reason: This policy is used by EKS Cluster, it needs to be able to access complex resource
+- id: W11
+  reason: This policy is bring about by Custom AWS CDK OpenIdConnectProvider, which is control by CDK.
