@@ -163,7 +163,7 @@ export class WafClusterStack extends Construct {
                         sizeInMBs: 5
                     },
                     compressionFormat: "GZIP",
-                    prefix: 'AWSLog/WAFLogs/',
+                    prefix: 'AWSLogs/WAFLogs/',
                     errorOutputPrefix: 'errors/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/hour=!{timestamp:HH}/!{firehose:error-output-type}'
                 }
             }
