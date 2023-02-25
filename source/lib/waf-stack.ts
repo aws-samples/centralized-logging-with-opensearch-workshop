@@ -207,6 +207,13 @@ export class WafClusterStack extends Construct {
                         ],
                         resources: [`arn:${Aws.PARTITION}:wafv2:${Aws.REGION}:${Aws.ACCOUNT_ID}:*`]
                     }),
+                    new iam.PolicyStatement({
+                        actions: [
+                            "iam:CreateServiceLinkedRole",
+                        ],
+                        resources: [`*`]
+                    }),
+                    
                 ],
             }
         );
