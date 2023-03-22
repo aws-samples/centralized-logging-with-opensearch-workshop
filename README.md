@@ -7,12 +7,6 @@ This repo contains the Centralized Logging workshop stack, which is a 3-tier e-c
 
 ![](workshop-web.png)
 
-## Architecture
-The following is the architecture.
-
-![](workshop-demo.png)
-
-
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
