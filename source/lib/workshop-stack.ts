@@ -82,7 +82,8 @@ export class MainStack extends Stack {
     // upload workshop simple app to s3.
     const webSiteS3 = new s3.Bucket(this, "clWorkshopWeb", {
       autoDeleteObjects: true,
-      removalPolicy: RemovalPolicy.DESTROY
+      removalPolicy: RemovalPolicy.DESTROY,
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
     });
 
     // upload static images to s3, will be exposed through cdn.
