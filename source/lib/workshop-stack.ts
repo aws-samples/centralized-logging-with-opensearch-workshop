@@ -169,7 +169,7 @@ export class MainStack extends Stack {
 
     // 3. create DB using the secret
     const dbEngine = rds.DatabaseInstanceEngine.mysql({
-      version: rds.MysqlEngineVersion.VER_8_0_25
+      version: rds.MysqlEngineVersion.VER_8_0_31
     });
     const workshopDB = new rds.DatabaseInstance(this, "workshopDB", {
       instanceIdentifier: "workshop-db",
